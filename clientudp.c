@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 extern int errno;
+FILE* logFile;
 
 #define ADDRNOTFOUND	0xffffffff	/* value returned for unknown host */
 #define RETRIES	5		/* number of times to retry before givin up */
@@ -72,7 +73,6 @@ char *argv[];
     struct sigaction vec;
    	char hostname[MAXHOST];
    	struct addrinfo hints, *res;
-	FILE* logFile;
 
 	logFile = fopen("cliente/cliente.log", "a");
 	if(logFile == NULL){
@@ -130,7 +130,7 @@ char *argv[];
              * that this program could easily be ported to a host
              * that does require it.
              */
-    fprintf(logFile, "%s: Connected to %s on port %u", getTime(), argv[1], ntohs(myaddr_in.sin_port));
+    fprintf(logFile, "%s: Connected to %s on port %u\n", getTime(), argv[1], ntohs(myaddr_in.sin_port));
 
 	/* Set up the server address. */
 	servaddr_in.sin_family = AF_INET;
@@ -187,5 +187,5 @@ char * getTime() {
 
 void handler()
 {
-	//fprintf(logFile, "Alarma recibida \n");
+	fprintf(logFile, "%s: Alarma recibida \n", getTime());
 }
