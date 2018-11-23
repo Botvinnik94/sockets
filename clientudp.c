@@ -74,7 +74,7 @@ char *argv[];
    	char hostname[MAXHOST];
    	struct addrinfo hints, *res;
 
-	logFile = fopen("cliente/cliente.log", "a");
+	logFile = fopen("cliente.log", "a");
 	if(logFile == NULL){
 		fprintf(stderr, "%s: Unable to create log file. Exiting...\n", getTime());
 		exit(1);

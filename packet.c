@@ -113,6 +113,19 @@ void free_packet(packet * package){
 	}
 }
 
+bool build_RQ_packet(uint16_t type, char* filename, packet *package)
+{
+	if(package != NULL){
+		package->opcode = type;
+		package->request_message.filename = malloc(sizeof(char) * strlen(filename))
+		strcpy(package->request_message.filename, filename);
+		package->request_message.filename = malloc(sizeof(char) * strlen("octet"));
+		strcpy(package->request_message.filename, "octet");
+		return TRUE;
+	}
+
+	return FALSE;
+}
 
 uint16_t network_to_host_short(byte_t *data)
 {

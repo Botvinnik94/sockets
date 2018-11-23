@@ -64,6 +64,7 @@ typedef struct
 bool unserialize(byte_t *buffer, size_t buffer_size, packet *package);
 bool serialize(packet *package, byte_t *buffer);
 
+void free_packet(packet * package);
 uint16_t network_to_host_short(byte_t *data);
 
 #endif
