@@ -31,7 +31,18 @@ int main()
 
    unserialize(buffer, 15, &pkg);
 
-   printf("\n\n%hu %c%c%c", pkg.data_message.nBloq, pkg.data_message.data[1], pkg.data_message.data[4], pkg.data_message.data[6]);
+   printf("\n\n%hu %c%c%c\n\n", pkg.data_message.nBloq, pkg.data_message.data[1], pkg.data_message.data[4], pkg.data_message.data[6]);
 
-   
+   byte_t buffer2[15];
+	serialize(&pkg, buffer2);
+
+
+	for(i = 0; i < 4; i++){
+		printf("%hu", buffer[i]);
+    }
+	for(i = 4; i < 15; ++i){
+		printf("%c", buffer[i]);
+	}
+
+	puts("");
 }
