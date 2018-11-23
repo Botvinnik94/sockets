@@ -137,7 +137,7 @@ char *argv[];
 		//TODO	
 	}
 	else{
-		//TODO
+		put_client_tcp(s, argv[3]);
 	}
 
     /* Print message indicating completion of task. */

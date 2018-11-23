@@ -117,10 +117,23 @@ bool build_RQ_packet(uint16_t type, char* filename, packet *package)
 {
 	if(package != NULL){
 		package->opcode = type;
-		package->request_message.filename = malloc(sizeof(char) * strlen(filename))
+		package->request_message.filename = malloc(sizeof(char) * strlen(filename));
 		strcpy(package->request_message.filename, filename);
 		package->request_message.filename = malloc(sizeof(char) * strlen("octet"));
 		strcpy(package->request_message.filename, "octet");
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+bool build_DATA_packet(byte_t *data, size_t data_size, uint16_t nBloq, packet *package)
+{
+	if(package != NULL){
+		package->opcode = DATA;
+		package->data_message.nBloq = nBloq;
+		package->data_message.data = malloc(sizeof(byte_t) * data_size);
+		memcpy(package->data_message.data, data, data_size);
 		return TRUE;
 	}
 

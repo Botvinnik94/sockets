@@ -30,7 +30,6 @@ typedef struct
 
 typedef struct
 {
-    //byte_t nBloq[2];
     uint16_t nBloq;
     byte_t *data;
     size_t data_size;
@@ -66,6 +65,9 @@ bool serialize(packet *package, byte_t *buffer);
 
 void free_packet(packet * package);
 uint16_t network_to_host_short(byte_t *data);
+
+bool build_RQ_packet(uint16_t type, char* filename, packet *package);
+bool build_DATA_packet(byte_t *data, size_t data_size, uint16_t nBloq, packet *package);
 
 #endif
 
