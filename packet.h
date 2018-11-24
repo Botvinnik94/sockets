@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <time.h>
+#include <stdio.h>
 
 #define MAX_DATA_SIZE 512
 
@@ -17,6 +19,12 @@
 
 #define TRUE 1
 #define FALSE 0
+
+#define ERR_UNDEFINED 0
+#define ERR_FILE_NOT_FOUND 1
+#define ERR_FULL_DISK 3
+#define ERR_ILLEGAL_OP 4
+#define ERR_FILE_EXISTS 6
 
 typedef char bool;
 
@@ -61,13 +69,17 @@ typedef struct
 }packet;
 
 bool unserialize(byte_t *buffer, size_t buffer_size, packet *package);
-bool serialize(packet *package, byte_t *buffer);
+byte_t* serialize(packet *package);
 
 void free_packet(packet * package);
 uint16_t network_to_host_short(byte_t *data);
 
 bool build_RQ_packet(uint16_t type, char* filename, packet *package);
 bool build_DATA_packet(byte_t *data, size_t data_size, uint16_t nBloq, packet *package);
+bool build_ERR_packet(uint16_t type, char *msg, packet *package);
+bool build_ACK_packet(uint16_t nBloq, packet *package);
+
+char * getTime();
 
 #endif
 

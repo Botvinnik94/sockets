@@ -17,6 +17,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include "action.h"
 
 
 
@@ -338,7 +339,21 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 	}
 
 	//TODO	
+    packet package;
+    tcp_receive(s, &package);
 
+    if(package.opcode == RRQ)
+    {
+        //get_server_tcp();
+    }
+    else if(package.opcode == WRQ)
+    {
+        put_server_tcp(s, &package);
+    }
+    else
+    {
+        //fprintf(logFile, "%s: Unknown opcode value\n", getTime());
+    }
 
 		/* The port number must be converted first to host byte
 		 * order before printing.  On most hosts, this is not
@@ -346,8 +361,12 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 		 * that this program could easily be ported to a host
 		 * that does require it.
 		 */
-	printf("Completed %s port %u, %d requests, at %s\n",
-		hostname, ntohs(clientaddr_in.sin_port), reqcnt, getTime());
+
+
+
+        
+	/*fprintf("Completed %s port %u, %d requests, at %s\n",
+		hostname, ntohs(clientaddr_in.sin_port), reqcnt, getTime());*/
 }
 
 /*

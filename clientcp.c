@@ -20,6 +20,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <time.h>
+#include "action.h"
 
 #define PUERTO 17278
 #define TAM_BUFFER 10
@@ -52,14 +53,14 @@ char *argv[];
 	char buf[TAM_BUFFER];
 
 	logFile = fopen("cliente.log", "a");
-	if(logFile == NULL){
+	if(stderr == NULL){
 		fprintf(stderr, "%s: Unable to create log file. Exiting...\n", getTime());
 		exit(1);
 	}
 
 	if (argc != 4 || (strcmp(argv[2], "get") && strcmp(argv[2], "put"))) {
-		fprintf(logFile, "%s: Usage:  %s <nameserver> <[get|set]> <path>\n", getTime(), argv[0]);
-		fclose(logFile);
+		fprintf(stderr, "%s: Usage:  %s <nameserver> <[get|set]> <path>\n", getTime(), argv[0]);
+		fclose(stderr);
 		exit(1);
 	}
 
@@ -67,7 +68,7 @@ char *argv[];
 	s = socket (AF_INET, SOCK_STREAM, 0);
 	if (s == -1) {
 		perror(argv[0]);
-		fprintf(logFile, "%s: %s: unable to create socket\n", getTime(), argv[0]);
+		fprintf(stderr, "%s: %s: unable to create socket\n", getTime(), argv[0]);
 		exit(1);
 	}
 	
@@ -87,7 +88,7 @@ char *argv[];
     if (errcode != 0){
 			/* Name was not found.  Return a
 			 * special value signifying the error. */
-		fprintf(logFile, "%s: %s: No es posible resolver la IP de %s\n", getTime(),
+		fprintf(stderr, "%s: %s: No es posible resolver la IP de %s\n", getTime(),
 				argv[0], argv[1]);
 		exit(1);
         }
@@ -105,7 +106,7 @@ char *argv[];
 		 */
 	if (connect(s, (const struct sockaddr *)&servaddr_in, sizeof(struct sockaddr_in)) == -1) {
 		perror(argv[0]);
-		fprintf(logFile, "%s: %s: unable to connect to remote\n", getTime(), argv[0]);
+		fprintf(stderr, "%s: %s: unable to connect to remote\n", getTime(), argv[0]);
 		exit(1);
 	}
 		/* Since the connect call assigns a free address
@@ -118,7 +119,7 @@ char *argv[];
 	addrlen = sizeof(struct sockaddr_in);
 	if (getsockname(s, (struct sockaddr *)&myaddr_in, &addrlen) == -1) {
 		perror(argv[0]);
-		fprintf(logFile, "%s: %s: unable to read socket address\n", getTime(), argv[0]);
+		fprintf(stderr, "%s: %s: unable to read socket address\n", getTime(), argv[0]);
 		exit(1);
 	 }
 
@@ -129,7 +130,7 @@ char *argv[];
 	 * that this program could easily be ported to a host
 	 * that does require it.
 	 */
-	fprintf(logFile, "%s: Connected to %s on port %u at %s", getTime(),
+	fprintf(stderr, "%s: Connected to %s on port %u at %s", getTime(),
 			argv[1], ntohs(myaddr_in.sin_port), getTime());
 
 
@@ -141,13 +142,7 @@ char *argv[];
 	}
 
     /* Print message indicating completion of task. */
-	fprintf(logFile, "All done at %s", getTime());
-}
+	fprintf(stderr, "All done at %s", getTime());
 
-char * getTime() {
-	long timevar;
-	time(&timevar);
-	char *date = (char *) ctime(&timevar);
-	date[strlen(date)-1] = '\0';
-	return date; 
+    fclose(logFile);
 }

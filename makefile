@@ -1,18 +1,24 @@
 clientcp: clientcp.o action.o transfer.o packet.o
-	gcc clientcp.o action.o transfer.o packet.o -o clientcp
+	gcc -g clientcp.o action.o transfer.o packet.o -o clientcp
+
+server: server.o action.o transfer.o packet.o
+	gcc -g server.o action.o transfer.o packet.o -o server
 
 clientcp.o: clientcp.c
-	gcc -c clientcp.c
+	gcc -c -g clientcp.c
 
 action.o: action.c action.h
-	gcc -c action.c
+	gcc -c -g action.c
 
 transfer.o: transfer.c transfer.h
-	gcc -c transfer.c
+	gcc -c -g transfer.c
 
 packet.o: packet.c packet.h
-	gcc -c packet.c
+	gcc -c -g packet.c
+
+server.o: server.c
+	gcc -c -g server.c
 
 clean:
-	rm *.o clientcp
+	rm *.o clientcp server
 

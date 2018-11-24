@@ -1,5 +1,7 @@
 #include "packet.h"
 
+extern FILE* logFile;
+
 bool unserialize(byte_t *buffer, size_t buffer_size, packet *package)
 {
     char *start_filename;
@@ -8,7 +10,7 @@ bool unserialize(byte_t *buffer, size_t buffer_size, packet *package)
 
     if( package == NULL || buffer == NULL)
     {
-        //fprintf(logFile, "%s: Invalid buffer or package input\n", getTime());
+        fprintf(stderr, "%s: Invalid buffer or package input\n", getTime());
         return FALSE;
     }
 
@@ -40,20 +42,21 @@ bool unserialize(byte_t *buffer, size_t buffer_size, packet *package)
             strcpy(package->err_message.msg, buffer + 4);
             break;
         default:
-            //fprintf(logFile,"%s: Error reading option code\n",getTime());
+            fprintf(stderr,"%s: Error reading option code\n",getTime());
             return FALSE;
     }
 
     return TRUE;
 }
 
-bool serialize(packet *package, byte_t *buffer) {
+byte_t* serialize(packet *package) {
 
+    byte_t *buffer;
 	uint16_t opcode, temp;
 
-	if( package == NULL || buffer == NULL){
-		//fprintf(logFile, "%s: Invalid buffer or package input\n", getTime());
-		return FALSE;	
+	if( package == NULL ){
+		fprintf(stderr, "%s: Invalid buffer or package input\n", getTime());
+		return NULL;	
 	}
 
 	opcode = htons(package->opcode);
@@ -87,11 +90,11 @@ bool serialize(packet *package, byte_t *buffer) {
 			strcpy(buffer + 4, package->err_message.msg);
 			break;
 		default:
-            //fprintf(logFile,"%s: Error reading option code\n",getTime());
-            return FALSE;
+            fprintf(stderr,"%s: Error reading option code\n",getTime());
+            return NULL;
 	}
 
-	return TRUE;
+	return buffer;
 
 }
 
@@ -119,8 +122,8 @@ bool build_RQ_packet(uint16_t type, char* filename, packet *package)
 		package->opcode = type;
 		package->request_message.filename = malloc(sizeof(char) * strlen(filename));
 		strcpy(package->request_message.filename, filename);
-		package->request_message.filename = malloc(sizeof(char) * strlen("octet"));
-		strcpy(package->request_message.filename, "octet");
+		package->request_message.mode = malloc(sizeof(char) * strlen("octet"));
+		strcpy(package->request_message.mode, "octet");
 		return TRUE;
 	}
 
@@ -140,9 +143,41 @@ bool build_DATA_packet(byte_t *data, size_t data_size, uint16_t nBloq, packet *p
 	return FALSE;
 }
 
+bool build_ERR_packet(uint16_t type, char *msg, packet *package)
+{
+    if(package != NULL){
+		package->opcode = ERR;
+		package->err_message.err_code = type;
+		package->err_message.msg = malloc(sizeof(char) * strlen(msg));
+		strcpy(package->err_message.msg, msg);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+bool build_ACK_packet(uint16_t nBloq, packet *package)
+{
+    if(package != NULL){
+		package->opcode = ACK;
+		package->ack_message.nBloq = nBloq;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 uint16_t network_to_host_short(byte_t *data)
 {
     uint16_t temp;
     memcpy(&temp, data, sizeof(uint16_t));
     return ntohs(temp);
+}
+
+char * getTime() {
+	long timevar;
+	time(&timevar);
+	char *date = (char *) ctime(&timevar);
+	date[strlen(date)-1] = '\0';
+	return date; 
 }
