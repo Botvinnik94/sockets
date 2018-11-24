@@ -43,6 +43,7 @@ void serverTCP(int s, struct sockaddr_in peeraddr_in);
 void serverUDP(int s, char * buffer, struct sockaddr_in clientaddr_in);
 void errout(char *);		/* declare error out routine */
 
+FILE * logFile;
 int FIN = 0;             /* Para el cierre ordenado */
 void finalizar(){ FIN = 1; }
 
@@ -69,11 +70,19 @@ char *argv[];
     
     struct sigaction vec;
 
+
+    logFile = fopen("cliente.log", "a");
+	if(logFile == NULL){
+		fprintf(logFile, "%s: Unable to create log file. Exiting...\n", getTime());
+		exit(1);
+	}
+
 		/* Create the listen socket. */
 	ls_TCP = socket (AF_INET, SOCK_STREAM, 0);
 	if (ls_TCP == -1) {
 		perror(argv[0]);
-		fprintf(stderr, "%s: unable to create socket TCP\n", argv[0]);
+		fprintf(logFile, "%s: %s: unable to create socket TCP\n", getTime(), argv[0]);
+        fclose(logFile);
 		exit(1);
 	}
 	/* clear out address structures */
@@ -100,7 +109,8 @@ char *argv[];
 	/* Bind the listen address to the socket. */
 	if (bind(ls_TCP, (const struct sockaddr *) &myaddr_in, sizeof(struct sockaddr_in)) == -1) {
 		perror(argv[0]);
-		fprintf(stderr, "%s: unable to bind address TCP\n", argv[0]);
+		fprintf(logFile, "%s: %s: unable to bind address TCP\n", getTime(), argv[0]);
+        fclose(logFile);
 		exit(1);
 	}
 		/* Initiate the listen on the socket so remote users
@@ -109,7 +119,8 @@ char *argv[];
 		 */
 	if (listen(ls_TCP, 5) == -1) {
 		perror(argv[0]);
-		fprintf(stderr, "%s: unable to listen on socket\n", argv[0]);
+		fprintf(logFile, "%s: %s: unable to listen on socket\n", getTime(), argv[0]);
+        fclose(logFile);
 		exit(1);
 	}
 	
@@ -118,13 +129,15 @@ char *argv[];
 	s_UDP = socket (AF_INET, SOCK_DGRAM, 0);
 	if (s_UDP == -1) {
 		perror(argv[0]);
-		printf("%s: unable to create socket UDP\n", argv[0]);
+		fprintf(logFile, "%s: %s: unable to create socket UDP\n", getTime(), argv[0]);
+        fclose(logFile);
 		exit(1);
 	   }
 	/* Bind the server's address to the socket. */
 	if (bind(s_UDP, (struct sockaddr *) &myaddr_in, sizeof(struct sockaddr_in)) == -1) {
 		perror(argv[0]);
-		printf("%s: unable to bind address UDP\n", argv[0]);
+		fprintf(logFile, "%s: %s: unable to bind address UDP\n", getTime(), argv[0]);
+        fclose(logFile);
 		exit(1);
 	    }
 
@@ -145,7 +158,8 @@ char *argv[];
 	switch (fork()) {
 	case -1:		/* Unable to fork, for some reason. */
 		perror(argv[0]);
-		fprintf(stderr, "%s: unable to fork daemon\n", argv[0]);
+		fprintf(logFile, "%s: %s: unable to fork daemon\n", getTime(), argv[0]);
+        fclose(logFile);
 		exit(1);
 
 	case 0:     /* The child process (daemon) comes here. */
@@ -168,7 +182,8 @@ char *argv[];
 			 */
 		if ( sigaction(SIGCHLD, &sa, NULL) == -1) {
             perror(" sigaction(SIGCHLD)");
-            fprintf(stderr,"%s: unable to register the SIGCHLD signal\n", argv[0]);
+            fprintf(logFile,"%s: %s: unable to register the SIGCHLD signal\n", getTime(), argv[0]);
+            fclose(logFile);
             exit(1);
             }
             
@@ -177,7 +192,8 @@ char *argv[];
         vec.sa_flags = 0;
         if ( sigaction(SIGTERM, &vec, (struct sigaction *) 0) == -1) {
             perror(" sigaction(SIGTERM)");
-            fprintf(stderr,"%s: unable to register the SIGTERM signal\n", argv[0]);
+            fprintf(logFile,"%s: %s: unable to register the SIGTERM signal\n", getTime(), argv[0]);
+            fclose(logFile);
             exit(1);
             }
         
@@ -267,6 +283,8 @@ char *argv[];
         close(ls_TCP);
         close(s_UDP);
     
+        fclose(logFile);
+
         printf("\nFin de programa servidor!\n");
         
 	default:		/* Parent process comes here. */
@@ -364,7 +382,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 
 
 
-        
+
 	/*fprintf("Completed %s port %u, %d requests, at %s\n",
 		hostname, ntohs(clientaddr_in.sin_port), reqcnt, getTime());*/
 }

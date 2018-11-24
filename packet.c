@@ -10,7 +10,7 @@ bool unserialize(byte_t *buffer, size_t buffer_size, packet *package)
 
     if( package == NULL || buffer == NULL)
     {
-        fprintf(stderr, "%s: Invalid buffer or package input\n", getTime());
+        fprintf(logFile, "%s: Invalid buffer or package input\n", getTime());
         return FALSE;
     }
 
@@ -42,20 +42,20 @@ bool unserialize(byte_t *buffer, size_t buffer_size, packet *package)
             strcpy(package->err_message.msg, buffer + 4);
             break;
         default:
-            fprintf(stderr,"%s: Error reading option code\n",getTime());
+            fprintf(logFile,"%s: Error reading option code\n",getTime());
             return FALSE;
     }
 
     return TRUE;
 }
 
-byte_t* serialize(packet *package) {
+byte_t* serialize(packet *package, size_t *buffer_size) {
 
     byte_t *buffer;
 	uint16_t opcode, temp;
 
 	if( package == NULL ){
-		fprintf(stderr, "%s: Invalid buffer or package input\n", getTime());
+		fprintf(logFile, "%s: Invalid buffer or package input\n", getTime());
 		return NULL;	
 	}
 
@@ -64,33 +64,37 @@ byte_t* serialize(packet *package) {
 	switch(package->opcode){
 		case RRQ:
 		case WRQ:
-			buffer = malloc(sizeof(byte_t) * (strlen(package->request_message.filename) + strlen(package->request_message.mode) + 4));
+            *buffer_size = sizeof(byte_t) * (strlen(package->request_message.filename) + strlen(package->request_message.mode) + 4);
+			buffer = malloc(*buffer_size);
 			memcpy(buffer, &opcode, 2);
 			strcpy(buffer + 2, package->request_message.filename);
 			strcpy(buffer + 2 + strlen(package->request_message.filename) + 1, package->request_message.mode);
 			break;
 		case DATA:
-			buffer = malloc(sizeof(byte_t) * (4 + package->data_message.data_size));
+            *buffer_size = sizeof(byte_t) * (4 + package->data_message.data_size);
+			buffer = malloc(*buffer_size);
 			memcpy(buffer, &opcode, 2);
 			temp = htons(package->data_message.nBloq);
 			memcpy(buffer + 2, &temp, 2);
-			memcpy(buffer + 4, &package->data_message.data, package->data_message.data_size);
-			break;
+			memcpy(buffer + 4, package->data_message.data, package->data_message.data_size);            
+            break;
 		case ACK:
-			buffer = malloc(sizeof(byte_t) * 4);
+            *buffer_size = sizeof(byte_t) * 4;
+			buffer = malloc(*buffer_size);
 			memcpy(buffer, &opcode, 2);
 			temp = htons(package->ack_message.nBloq);
 			memcpy(buffer + 2, &temp, 2);
 			break;
 		case ERR:
-			buffer = malloc(sizeof(byte_t) * (strlen(package->err_message.msg) + 4));
+            *buffer_size = sizeof(byte_t) * (strlen(package->err_message.msg) + 4);
+			buffer = malloc(*buffer_size);
 			memcpy(buffer, &opcode, 2);
 			temp = htons(package->err_message.err_code);
 			memcpy(buffer + 2, &temp, 2);
 			strcpy(buffer + 4, package->err_message.msg);
 			break;
 		default:
-            fprintf(stderr,"%s: Error reading option code\n",getTime());
+            fprintf(logFile,"%s: Error reading option code\n",getTime());
             return NULL;
 	}
 
@@ -137,6 +141,7 @@ bool build_DATA_packet(byte_t *data, size_t data_size, uint16_t nBloq, packet *p
 		package->data_message.nBloq = nBloq;
 		package->data_message.data = malloc(sizeof(byte_t) * data_size);
 		memcpy(package->data_message.data, data, data_size);
+        package->data_message.data_size = data_size;
 		return TRUE;
 	}
 

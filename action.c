@@ -11,7 +11,7 @@ void put_client_tcp(int socket, char *filename){
     /* Opens the file */
 	FILE *file = fopen(filename, "r");
 	if(file == NULL){
-		fprintf(stderr, "%s: file does not exist\n", getTime());
+		fprintf(logFile, "%s: file does not exist\n", getTime());
 		shutdown_connection(socket);
 		return;
 	}
@@ -39,7 +39,7 @@ void put_client_tcp(int socket, char *filename){
 
     if( package.opcode == ACK )
     {
-        /* Starts sendind data to the server */
+        /* Starts sending data to the server */
         while(n_read = fread(buffer, sizeof(byte_t), MAX_DATA_SIZE, file)){
             if(!build_DATA_packet(buffer, n_read, 0, &package)) {
                 shutdown_connection(socket);
@@ -56,11 +56,11 @@ void put_client_tcp(int socket, char *filename){
     }
     else if( package.opcode == ERR )
     {
-        fprintf(stderr, "%s: %s\n", getTime(), package.err_message.msg );
+        fprintf(logFile, "%s: %s\n", getTime(), package.err_message.msg );
     }
     else
     {
-        fprintf(stderr, "%s: Unexpected opcode at 'put client'\n",getTime());
+        fprintf(logFile, "%s: Unexpected opcode at 'put client'\n",getTime());
     }
 
 
@@ -80,13 +80,13 @@ void put_server_tcp(int socket, packet *package)
     {
         if( !build_ERR_packet(ERR_FILE_EXISTS, "File already exists", package) )
         {           
-            fprintf(stderr, "%s: Error building ERR packet\n", getTime());
+            fprintf(logFile, "%s: Error building ERR packet\n", getTime());
             return;
         }
 
         if( !tcp_send(socket, package) )
         {
-            fprintf(stderr, "%s: Error sending ERR packet\n", getTime());
+            fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
             return;
         }
 
@@ -95,17 +95,18 @@ void put_server_tcp(int socket, packet *package)
 
     else
     {
+        filename = malloc(strlen(package->request_message.filename));
         strcpy(filename, package->request_message.filename);
 
         if( !build_ACK_packet(0, package) )
         {           
-            fprintf(stderr, "%s: Error building ACK packet\n", getTime());
+            fprintf(logFile, "%s: Error building ACK packet\n", getTime());
             return;
         }
 
         if( !tcp_send(socket, package) )
         {
-            fprintf(stderr, "%s: Error sending ACK packet\n", getTime());
+            fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
             return;
         }
 
@@ -113,36 +114,41 @@ void put_server_tcp(int socket, packet *package)
         file = fopen(filename, "w");
         if( file == NULL )
         {
-            fprintf(stderr, "%s: Error creating file at 'put server'\n", getTime());
+            fprintf(logFile, "%s: Error creating file at 'put server'\n", getTime());
             return;
         }
 
-        /* Waits for DATA packages */
+        /* Waits for DATA packages *//*
         if( !tcp_receive(socket, package) )
         {
-            fprintf(stderr, "%s: Error receiving DATA packet\n", getTime());
+            fprintf(logFile, "%s: Error receiving DATA packet\n", getTime());
             return;
-        }
+        }*/
 
         /* Iterates while not reveiving -1 (ERROR) or 0 (Shutdown) */
-        while( !tcp_receive(socket, package) )
+        while( tcp_receive(socket, package) )
         {
+            //write(package->data_message.data, sizeof(byte_t), package->data_message.data_size, file);
             if( fwrite(package->data_message.data, sizeof(byte_t), package->data_message.data_size, file) < package->data_message.data_size )
             {
-                fprintf(stderr, "%s: Error writing file at 'put server'\n", getTime());
+                fprintf(logFile, "%s: Error writing file at 'put server'\n", getTime());
                 break;
             }
+
+                fprintf(logFile, "%s: ITERACION REALIZADA'\n", getTime());
+
         }
 
+        free(filename);
         fclose(file);
-        /* Shutdown here? */
+        //shutdown_connection(socket);
     }
 
 }
 
 void shutdown_connection(int socket){
 	if (shutdown(socket, SHUT_WR) == -1) {
-		fprintf(stderr, "%s: unable to shutdown socket\n", getTime());
+		fprintf(logFile, "%s: unable to shutdown socket\n", getTime());
 		exit(1);
 	}
 }
