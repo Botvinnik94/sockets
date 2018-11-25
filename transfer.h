@@ -3,7 +3,7 @@
 
 #include "packet.h"
 
-#define MAX_BUFFER_SIZE 1024
+#define MAX_BUFFER_SIZE 516
 
 bool tcp_receive(int socket, packet* package);
 bool tcp_send(int socket, packet* package);

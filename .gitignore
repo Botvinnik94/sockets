@@ -1,6 +1,0 @@
-*.log
-clientudp
-*.o
-clientcp
-server
-testFile

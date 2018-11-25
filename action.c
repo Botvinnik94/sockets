@@ -7,11 +7,13 @@ void put_client_tcp(int socket, char *filename){
 	packet package;
 	byte_t buffer[MAX_DATA_SIZE];
 	size_t n_read;
+	char path[] = "ficherosTFTPclient/";
 
     /* Opens the file */
-	FILE *file = fopen(filename, "r");
+	strcat(path, filename);
+	FILE *file = fopen(path, "r");
 	if(file == NULL){
-		fprintf(logFile, "%s: file does not exist\n", getTime());
+		fprintf(logFile, "%s: file does not exist(filename=%s)\n", getTime(),path);
 		shutdown_connection(socket);
 		return;
 	}
@@ -29,7 +31,7 @@ void put_client_tcp(int socket, char *filename){
 		return;
 	}
 
-    /* Waits for server ACK  */
+    /* Waits for server ACK (our custom ACK)  */
     if( !tcp_receive(socket, &package))
     {
         shutdown_connection(socket);
@@ -74,7 +76,7 @@ void put_client_tcp(int socket, char *filename){
 void put_server_tcp(int socket, packet *package)
 {
     FILE *file;
-    char *filename;
+	char path[] = "ficherosTFTPserver/";
 
     if( access(package->request_message.filename, F_OK) == 0 )
     {
@@ -95,8 +97,7 @@ void put_server_tcp(int socket, packet *package)
 
     else
     {
-        filename = malloc(strlen(package->request_message.filename));
-        strcpy(filename, package->request_message.filename);
+        strcat(path, package->request_message.filename);
 
         if( !build_ACK_packet(0, package) )
         {           
@@ -111,7 +112,7 @@ void put_server_tcp(int socket, packet *package)
         }
 
         /* Opens the file to proceed with the writing */
-        file = fopen(filename, "w");
+        file = fopen(path, "w");
         if( file == NULL )
         {
             fprintf(logFile, "%s: Error creating file at 'put server'\n", getTime());
@@ -139,7 +140,6 @@ void put_server_tcp(int socket, packet *package)
 
         }
 
-        free(filename);
         fclose(file);
         //shutdown_connection(socket);
     }
