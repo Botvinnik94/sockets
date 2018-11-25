@@ -71,7 +71,7 @@ char *argv[];
     struct sigaction vec;
 
 
-    logFile = fopen("cliente.log", "a");
+    logFile = fopen("server.txt", "a");
 	if(logFile == NULL){
 		fprintf(logFile, "%s: Unable to create log file. Exiting...\n", getTime());
 		exit(1);
