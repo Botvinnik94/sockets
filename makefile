@@ -20,5 +20,5 @@ server.o: server.c
 	gcc -c -g server.c
 
 clean:
-	rm *.o client server testFile.txt cliente.txt
+	rm *.o
 
