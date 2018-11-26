@@ -40,7 +40,7 @@ extern int errno;
  */
  
 void serverTCP(int s, struct sockaddr_in peeraddr_in);
-void serverUDP(int s, char * buffer, struct sockaddr_in clientaddr_in);
+void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clientaddr_in);
 void errout(char *);		/* declare error out routine */
 
 FILE * logFile;
@@ -267,7 +267,6 @@ char *argv[];
                 cc = recvfrom(s_UDP, buffer, BUFFERSIZE - 1, 0,
                    (struct sockaddr *)&clientaddr_in, &addrlen);
                 if ( cc == -1) {
-                    perror(argv[0]);
                     printf("%s: recvfrom error\n", argv[0]);
                     exit (1);
                     }
@@ -275,7 +274,7 @@ char *argv[];
                 * null terminated.
                 */
                 buffer[cc]='\0';
-                serverUDP (s_UDP, buffer, clientaddr_in);
+                serverUDP (s_UDP, buffer, cc, clientaddr_in);
                 }
           }
 		}   /* Fin del bucle infinito de atención a clientes */
@@ -356,13 +355,13 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 		errout(hostname);
 	}
 
-	//TODO	
+	/* Wait for a client request */
     packet package;
     tcp_receive(s, &package);
 
     if(package.opcode == RRQ)
     {
-        //get_server_tcp();
+        get_server_tcp(s, &package);
     }
     else if(package.opcode == WRQ)
     {
@@ -370,7 +369,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     }
     else
     {
-        //fprintf(logFile, "%s: Unknown opcode value\n", getTime());
+        fprintf(logFile, "%s: Unknown opcode value\n", getTime());
     }
 
 		/* The port number must be converted first to host byte
@@ -407,7 +406,7 @@ void errout(char *hostname)
  *	logging information to stdout.
  *
  */
-void serverUDP(int s, char * buffer, struct sockaddr_in clientaddr_in)
+void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clientaddr_in)
 {
     struct in_addr reqaddr;	/* for requested host's address */
     struct hostent *hp;		/* pointer to host info for requested host */
@@ -419,8 +418,8 @@ void serverUDP(int s, char * buffer, struct sockaddr_in clientaddr_in)
     
    	addrlen = sizeof(struct sockaddr_in);
 
-      memset (&hints, 0, sizeof (hints));
-      hints.ai_family = AF_INET;
+    memset (&hints, 0, sizeof (hints));
+    hints.ai_family = AF_INET;
 		/* Treat the message as a string containing a hostname. */
 	    /* Esta función es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta. */
     errcode = getaddrinfo (buffer, NULL, &hints, &res); 
@@ -435,11 +434,20 @@ void serverUDP(int s, char * buffer, struct sockaddr_in clientaddr_in)
 	}
      freeaddrinfo(res);
 
-	nc = sendto (s, &reqaddr, sizeof(struct in_addr),
-			0, (struct sockaddr *)&clientaddr_in, addrlen);
-	if ( nc == -1) {
-         perror("serverUDP");
-         printf("%s: sendto error\n", "serverUDP");
-         return;
-         }   
+	/* Wait for a client request */
+    packet package;
+    unserialize((byte_t *)buffer, buffer_size, &package);
+
+    if(package.opcode == RRQ)
+    {
+        //get_server_udp(s, &package, &clientaddr_in, addrlen);
+    }
+    else if(package.opcode == WRQ)
+    {
+        put_server_udp(s, &package, &clientaddr_in, addrlen);
+    }
+    else
+    {
+        fprintf(logFile, "%s: Unknown opcode value\n", getTime());
+    }
  }
