@@ -10,7 +10,7 @@
 #include <time.h>
 #include "action.h"
 
-#define PORT 17278
+#define PORT 9172
 #define TAM_BUFFER 10
 
 FILE * logFile;
