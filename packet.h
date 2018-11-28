@@ -10,12 +10,12 @@
 #define MAX_DATA_SIZE 512
 
 /* OPTION DEFINES */
-#define EMPTY   0b00000000
-#define RRQ     0b00000001
-#define WRQ     0b00000010
-#define DATA    0b00000011
-#define ACK     0b00000100
-#define ERR     0b00000101
+#define EMPTY   0x00
+#define RRQ     0x01
+#define WRQ     0x02
+#define DATA    0x03
+#define ACK     0x04
+#define ERR     0x05
 
 #define TRUE 1
 #define FALSE 0

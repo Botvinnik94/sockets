@@ -1,0 +1,7 @@
+Wed Nov 28 18:55:00 2018: Connected to localhost on port 55410
+Wed Nov 28 18:55:00 2018: File already exists at 'get client tcp'(filename=ficherosTFTPclient/testFile.txt)
+All done at Wed Nov 28 18:55:00 2018Wed Nov 28 18:55:00 2018: Connected to localhost on port 53335
+Wed Nov 28 18:55:00 2018: File already exists at 'get client tcp'(filename=ficherosTFTPclient/testFile2.txt)
+All done at Wed Nov 28 18:55:00 2018Wed Nov 28 18:55:00 2018: Connected to localhost on port 54876
+Wed Nov 28 18:55:00 2018: File already exists at 'get client tcp'(filename=ficherosTFTPclient/testFile3.txt)
+All done at Wed Nov 28 18:55:00 2018

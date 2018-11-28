@@ -14,13 +14,11 @@
 #define TAM_BUFFER 10
 
 FILE * logFile;
-void clientcp( int socket, char *argv[] );
-void clientudp( int socket, char *argv[] );
+void clientcp( char *argv[] );
+void clientudp( char *argv[] );
 
 int main( int argc, char *argv[] )
 {
-	int s; 							/* Socket descriptor */	
-
 	/* Open the client log file */
 	if ( (logFile = fopen("cliente.txt", "a")) == NULL )
 	{
@@ -36,19 +34,11 @@ int main( int argc, char *argv[] )
 		exit(1);
 	}
 
-	/* Create the socket */
-	if ( (s = socket( AF_INET, SOCK_STREAM, 0 )) == -1 )
-	{
-		fprintf(logFile, "%s: %s: unable to create socket\n", getTime(), argv[0]);
-        fclose(logFile);
-		exit(1);
-	}
-
 	/* Check if it's a TCP or UDP client */
 	if( !strcmp(argv[2], "TCP") )
-		clientcp( s, argv );
+		clientcp( argv );
 	else
-		clientudp( s, argv ); /* TO DO */
+		clientudp( argv ); /* TO DO */
 
 	
 	/* Print message indicating completion of task. */
@@ -58,13 +48,22 @@ int main( int argc, char *argv[] )
 	return 0;
 }
 
-void clientcp( int socket, char *argv[] )
+void clientcp( char *argv[] )
 {
 	struct addrinfo hints, *res;
 	struct sockaddr_in myaddr_in;	/* For local socket address */
 	struct sockaddr_in servaddr_in;	/* For server socket address */
 	int addrlen, i, j, errcode;
+    int s; 							/* Socket descriptor */	
 	
+    /* Create the socket */
+	if ( (s = socket( AF_INET, SOCK_STREAM, 0 )) == -1 )
+	{
+		fprintf(logFile, "%s: %s: unable to create socket\n", getTime(), argv[0]);
+        fclose(logFile);
+		exit(1);
+	}
+
 	/* Clear out address structures */
 	memset ((char *)&myaddr_in, 0, sizeof(struct sockaddr_in));
 	memset ((char *)&servaddr_in, 0, sizeof(struct sockaddr_in));
@@ -95,7 +94,7 @@ void clientcp( int socket, char *argv[] )
 	servaddr_in.sin_port = htons(PORT);
 
 	/* Try to connect to the remote server at the address which was just built into peeraddr. */
-	if ( connect(socket, (const struct sockaddr *)&servaddr_in, sizeof(struct sockaddr_in)) == -1 )
+	if ( connect(s, (const struct sockaddr *)&servaddr_in, sizeof(struct sockaddr_in)) == -1 )
 	{
 		fprintf(logFile, "%s: %s: unable to connect to remote\n", getTime(), argv[0]);
         fclose(logFile);
@@ -106,7 +105,7 @@ void clientcp( int socket, char *argv[] )
 		let's use getsockname to see what it assigned.  Note that addrlen needs to be passed 
 		in as a pointer, because getsockname returns the actual length of the address. */
 	addrlen = sizeof(struct sockaddr_in);
-	if ( getsockname(socket, (struct sockaddr *)&myaddr_in, &addrlen) == -1 )
+	if ( getsockname(s, (struct sockaddr *)&myaddr_in, &addrlen) == -1 )
 	{
 		fprintf(logFile, "%s: %s: unable to read socket address\n", getTime(), argv[0]);
         fclose(logFile);
@@ -115,21 +114,30 @@ void clientcp( int socket, char *argv[] )
 
 	fprintf(logFile, "%s: Connected to %s on port %u\n", getTime(), argv[1], ntohs(myaddr_in.sin_port));
 
-	if(!strcmp(argv[3], "r")){
-		get_client_tcp(socket, argv[4]);
+	if(!strcmp(argv[3], "l")){
+		get_client_tcp(s, argv[4]);
 	}
 	else{
-		put_client_tcp(socket, argv[4]);
+		put_client_tcp(s, argv[4]);
 	}
 
 }
 
-void clientudp( int socket, char *argv[] )
+void clientudp( char *argv[] )
 {
 	struct sockaddr_in myaddr_in;	/* For local socket address */
 	struct sockaddr_in servaddr_in;	/* For server socket address */
     struct addrinfo hints, *res;
     int errcode, addrlen;
+    int s; 							/* Socket descriptor */	
+
+    /* Create the socket */
+	if ( (s = socket( AF_INET, SOCK_DGRAM, 0 )) == -1 )
+	{
+		fprintf(logFile, "%s: %s: unable to create socket\n", getTime(), argv[0]);
+        fclose(logFile);
+		exit(1);
+	}
 
 	/* Clear out address structures */
 	memset ((char *)&myaddr_in, 0, sizeof(struct sockaddr_in));
@@ -138,14 +146,14 @@ void clientudp( int socket, char *argv[] )
     myaddr_in.sin_family = AF_INET;
 	myaddr_in.sin_port = 0;
 	myaddr_in.sin_addr.s_addr = INADDR_ANY;
-	if (bind(socket, (const struct sockaddr *) &myaddr_in, sizeof(struct sockaddr_in)) == -1) {
+	if (bind(s, (const struct sockaddr *) &myaddr_in, sizeof(struct sockaddr_in)) == -1) {
 		perror(argv[0]);
 		fprintf(logFile, "%s: %s unable to bind socket\n", getTime(), argv[0]);
 		fclose(logFile);
 		exit(1);
 	   }
     addrlen = sizeof(struct sockaddr_in);
-    if (getsockname(socket, (struct sockaddr *)&myaddr_in, &addrlen) == -1) {
+    if (getsockname(s, (struct sockaddr *)&myaddr_in, &addrlen) == -1) {
             perror(argv[0]);
             fprintf(logFile, "%s: %s unable to read socket address\n", getTime(), argv[0]);
 			fclose(logFile);
@@ -185,13 +193,11 @@ void clientudp( int socket, char *argv[] )
      freeaddrinfo(res);
      /* puerto del servidor en orden de red*/
 	 servaddr_in.sin_port = htons(PORT);
-
-   
 	
 	if(!strcmp(argv[3], "e")){
-		put_client_udp(socket, argv[4], &myaddr_in, addrlen);
+		put_client_udp(s, argv[4], &servaddr_in, addrlen);
 	}
 	else{
-		//TODO
+		get_client_udp(s, argv[4], &servaddr_in, addrlen);
 	}
 }

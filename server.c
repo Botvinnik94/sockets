@@ -196,7 +196,7 @@ char *argv[];
             fclose(logFile);
             exit(1);
             }
-        
+
 		while (!FIN) {
             /* Meter en el conjunto de sockets los sockets UDP y TCP */
             FD_ZERO(&readmask);
@@ -218,7 +218,6 @@ char *argv[];
                 }
             }
            else { 
-
                 /* Comprobamos si el socket seleccionado es el socket TCP */
                 if (FD_ISSET(ls_TCP, &readmask)) {
                     /* Note that addrlen is passed as a pointer
@@ -264,8 +263,10 @@ char *argv[];
                 * room is left at the end of the buffer
                 * for a null character.
                 */
+            
                 cc = recvfrom(s_UDP, buffer, BUFFERSIZE - 1, 0,
                    (struct sockaddr *)&clientaddr_in, &addrlen);
+                printf("He recibido %d bytes\n", cc);
                 if ( cc == -1) {
                     printf("%s: recvfrom error\n", argv[0]);
                     exit (1);
@@ -274,6 +275,8 @@ char *argv[];
                 * null terminated.
                 */
                 buffer[cc]='\0';
+                printf("BUFFER = %c%c%c\n\n", buffer[2], buffer[3], buffer[4]);
+                printf("Antes de entrar en serverUDP\n");
                 serverUDP (s_UDP, buffer, cc, clientaddr_in);
                 }
           }
@@ -408,43 +411,41 @@ void errout(char *hostname)
  */
 void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clientaddr_in)
 {
-    struct in_addr reqaddr;	/* for requested host's address */
-    struct hostent *hp;		/* pointer to host info for requested host */
-    int nc, errcode;
+	int addrlen = sizeof(struct sockaddr_in);
+    int udp_socket;
+    struct sockaddr_in myaddr_in;
 
-    struct addrinfo hints, *res;
+    memset ((char *)&myaddr_in, 0, sizeof(struct sockaddr_in));
 
-	int addrlen;
-    
-   	addrlen = sizeof(struct sockaddr_in);
+    addrlen = sizeof(struct sockaddr_in);
 
-    memset (&hints, 0, sizeof (hints));
-    hints.ai_family = AF_INET;
-		/* Treat the message as a string containing a hostname. */
-	    /* Esta función es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta. */
-    errcode = getaddrinfo (buffer, NULL, &hints, &res); 
-    if (errcode != 0){
-		/* Name was not found.  Return a
-		 * special value signifying the error. */
-		reqaddr.s_addr = ADDRNOTFOUND;
-      }
-    else {
-		/* Copy address of host into the return buffer. */
-		reqaddr = ((struct sockaddr_in *) res->ai_addr)->sin_addr;
+	myaddr_in.sin_family = AF_INET;
+	myaddr_in.sin_addr.s_addr = INADDR_ANY;
+	myaddr_in.sin_port = 0;
+
+    udp_socket = socket (AF_INET, SOCK_DGRAM, 0);
+    if (udp_socket == -1) {
+		fprintf(logFile, "%s: unable to create socket UDP\n", getTime());
+        fclose(logFile);
+		exit(1);
+	   }
+
+	if (bind(udp_socket, (struct sockaddr *) &myaddr_in, sizeof(struct sockaddr_in)) == -1) {
+		fprintf(logFile, "%s: unable to bind address UDP\n", getTime());
+        fclose(logFile);
+		exit(1);
 	}
-     freeaddrinfo(res);
-
 	/* Wait for a client request */
     packet package;
     unserialize((byte_t *)buffer, buffer_size, &package);
-
+    
     if(package.opcode == RRQ)
     {
-        //get_server_udp(s, &package, &clientaddr_in, addrlen);
+        get_server_udp(udp_socket, &package, &clientaddr_in, addrlen);
     }
     else if(package.opcode == WRQ)
     {
-        put_server_udp(s, &package, &clientaddr_in, addrlen);
+        put_server_udp(udp_socket, &package, &clientaddr_in, addrlen);
     }
     else
     {

@@ -21,5 +21,8 @@ void get_client_udp(int socket, char *filename, struct sockaddr_in *clientaddr_i
 void get_server_udp(int socket, packet *package, struct sockaddr_in *clientaddr_in, int addrlen);
 
 void shutdown_connection(int socket);
+void register_sigalrm();
+void handler();
+
 
 #endif

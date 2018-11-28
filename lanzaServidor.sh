@@ -20,5 +20,7 @@ make client
 sleep 1.5
 ./server
 sleep 1
-./client localhost UDP e testFile.txt
+./client localhost UDP l testFile.txt
+./client localhost UDP l testFile2.txt
+./client localhost UDP l testFile3.txt
 #./client localhost TCP l testFile1.txt

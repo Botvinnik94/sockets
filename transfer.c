@@ -56,9 +56,9 @@ bool tcp_send(int socket, packet* package){
 
 bool udp_receive(int socket, packet* package, struct sockaddr_in *clientaddr_in, int addrlen)
 {
-    register_sigalrm();
 
     byte_t buffer[MAX_BUFFER_SIZE];
+    size_t bytes_received;
 
 	if(package == NULL){
 		fprintf(logFile, "%s: package null at receive function\n", getTime());	
@@ -66,11 +66,11 @@ bool udp_receive(int socket, packet* package, struct sockaddr_in *clientaddr_in,
 	}
 
     alarm(TIMEOUT);
-	size_t bytes_received = recvfrom(socket, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)clientaddr_in, &addrlen);
+	while ((bytes_received = recvfrom(socket, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)clientaddr_in, &addrlen)) == -1 && errno == EINTR){}
     alarm(0);
 	if(bytes_received == -1 || bytes_received == 0){
         if( bytes_received == -1 )
-		    fprintf(logFile,"%s: recv error received\n", getTime());	
+            fprintf(logFile,"%s: recv error received\n", getTime());
         else
             fprintf(logFile,"%s: recv shutdown received\n", getTime());	
 		return FALSE;
@@ -109,37 +109,5 @@ bool udp_send(int socket, packet* package, struct sockaddr_in *clientaddr_in, in
 	free(buffer);
 
 	return TRUE;
-}
-
-void register_sigalrm()
-{
-    /* Registrar SIGALRM para no quedar bloqueados en los recvfrom */
-    struct sigaction vec;
-    vec.sa_handler = (void *) handler;
-    vec.sa_flags = 0;
-
-    if ( sigaction(SIGALRM, &vec, (struct sigaction *) 0) == -1)
-    {
-        fprintf(logFile,"%s: unable to register the SIGALRM signal\n", getTime());
-		fclose(logFile);
-        exit(1);
-    }
-}
-
-void handler()
-{
-	static int retries_left = 5;
-
-    if( --retries_left )
-    {
-        fprintf(logFile, "%s: Retries left = %d\n", getTime(), retries_left);
-        alarm(TIMEOUT);
-    }
-    else
-    {
-        fprintf(logFile, "%s: Ran out retries, exiting...\n", getTime());
-        exit(1);
-    }
-
 }
 
