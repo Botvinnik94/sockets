@@ -263,7 +263,7 @@ char *argv[];
                 * room is left at the end of the buffer
                 * for a null character.
                 */
-            
+RECV:           
                 cc = recvfrom(s_UDP, buffer, BUFFERSIZE - 1, 0,
                    (struct sockaddr *)&clientaddr_in, &addrlen);
                 printf("He recibido %d bytes\n", cc);
@@ -274,10 +274,19 @@ char *argv[];
                 /* Make sure the message received is
                 * null terminated.
                 */
-                buffer[cc]='\0';
-                printf("BUFFER = %c%c%c\n\n", buffer[2], buffer[3], buffer[4]);
-                printf("Antes de entrar en serverUDP\n");
-                serverUDP (s_UDP, buffer, cc, clientaddr_in);
+                //buffer[cc]='\0';
+		switch(fork())
+		{
+			case -1:	/* Can't fork, just exit. */
+        				exit(1);
+        		case 0:		/* Child process comes here. */
+					pause();        
+        				serverUDP (s_UDP, buffer, cc, clientaddr_in);
+        				exit(0);
+			default:
+					goto RECV;
+		}
+                
                 }
           }
 		}   /* Fin del bucle infinito de atención a clientes */
@@ -451,4 +460,6 @@ void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clie
     {
         fprintf(logFile, "%s: Unknown opcode value\n", getTime());
     }
+
+	close(udp_socket);
  }
