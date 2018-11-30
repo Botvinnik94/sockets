@@ -201,5 +201,4 @@ void clientudp( char *argv[] )
 		get_client(s, argv[4], &servaddr_in, addrlen, UDP);
 	}
 
-	shutdown_connection(s);
 }

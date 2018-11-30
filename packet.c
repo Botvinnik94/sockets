@@ -153,7 +153,7 @@ bool build_ERR_packet(uint16_t type, char *msg, packet *package)
     if(package != NULL){
 		package->opcode = ERR;
 		package->err_message.err_code = type;
-		package->err_message.msg = malloc(sizeof(char) * strlen(msg));
+		package->err_message.msg = malloc(sizeof(char) * (strlen(msg) + 1));
 		strcpy(package->err_message.msg, msg);
 		return TRUE;
 	}

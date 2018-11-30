@@ -137,7 +137,7 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 	strcat(path, package->request_message.filename);
     if( access(path, F_OK) == 0 )
     {
-        if( !build_ERR_packet(ERR_FILE_EXISTS, "File already exists at 'put_server'\n", package) )
+        if( !build_ERR_packet(ERR_FILE_EXISTS, "File already exists at 'put_server'", package) )
         {           
             fprintf(logFile, "%s: Error building ERR packet\n", getTime());
             return;
