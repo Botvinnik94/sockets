@@ -134,12 +134,13 @@ char *argv[];
 		exit(1);
 	   }
 	/* Bind the server's address to the socket. */
-	if (bind(s_UDP, (struct sockaddr *) &myaddr_in, sizeof(struct sockaddr_in)) == -1) {
+	if (bind(s_UDP, (struct sockaddr *) &myaddr_in, sizeof(struct sockaddr_in)) == -1) 
+	{
 		perror(argv[0]);
 		fprintf(logFile, "%s: %s: unable to bind address UDP\n", getTime(), argv[0]);
         fclose(logFile);
 		exit(1);
-	    }
+	}
 
 		/* Now, all the initialization of the server is
 		 * complete, and any user errors will have already
@@ -155,106 +156,109 @@ char *argv[];
 		 */
 	setpgrp();
 
-	switch (fork()) {
-	case -1:		/* Unable to fork, for some reason. */
-		perror(argv[0]);
-		fprintf(logFile, "%s: %s: unable to fork daemon\n", getTime(), argv[0]);
-        fclose(logFile);
-		exit(1);
+	switch (fork()) 
+	{
+		case -1:		/* Unable to fork, for some reason. */
+			perror(argv[0]);
+			fprintf(logFile, "%s: %s: unable to fork daemon\n", getTime(), argv[0]);
+		    fclose(logFile);
+			exit(1);
 
-	case 0:     /* The child process (daemon) comes here. */
+		case 0:     /* The child process (daemon) comes here. */
 
-			/* Close stdin and stderr so that they will not
-			 * be kept open.  Stdout is assumed to have been
-			 * redirected to some logging file, or /dev/null.
-			 * From now on, the daemon will not report any
-			 * error messages.  This daemon will loop forever,
-			 * waiting for connections and forking a child
-			 * server to handle each one.
-			 */
-		fclose(stdin);
-		fclose(stderr);
+				/* Close stdin and stderr so that they will not
+				 * be kept open.  Stdout is assumed to have been
+				 * redirected to some logging file, or /dev/null.
+				 * From now on, the daemon will not report any
+				 * error messages.  This daemon will loop forever,
+				 * waiting for connections and forking a child
+				 * server to handle each one.
+				 */
+			fclose(stdin);
+			fclose(stderr);
 
-			/* Set SIGCLD to SIG_IGN, in order to prevent
-			 * the accumulation of zombies as each child
-			 * terminates.  This means the daemon does not
-			 * have to make wait calls to clean them up.
-			 */
-		if ( sigaction(SIGCHLD, &sa, NULL) == -1) {
-            perror(" sigaction(SIGCHLD)");
-            fprintf(logFile,"%s: %s: unable to register the SIGCHLD signal\n", getTime(), argv[0]);
-            fclose(logFile);
-            exit(1);
-            }
-            
-		    /* Registrar SIGTERM para la finalizacion ordenada del programa servidor */
-        vec.sa_handler = (void *) finalizar;
-        vec.sa_flags = 0;
-        if ( sigaction(SIGTERM, &vec, (struct sigaction *) 0) == -1) {
-            perror(" sigaction(SIGTERM)");
-            fprintf(logFile,"%s: %s: unable to register the SIGTERM signal\n", getTime(), argv[0]);
-            fclose(logFile);
-            exit(1);
-            }
+				/* Set SIGCLD to SIG_IGN, in order to prevent
+				 * the accumulation of zombies as each child
+				 * terminates.  This means the daemon does not
+				 * have to make wait calls to clean them up.
+				 */
+			if ( sigaction(SIGCHLD, &sa, NULL) == -1) {
+		        perror(" sigaction(SIGCHLD)");
+		        fprintf(logFile,"%s: %s: unable to register the SIGCHLD signal\n", getTime(), argv[0]);
+		        fclose(logFile);
+		        exit(1);
+		        }
+		        
+				/* Registrar SIGTERM para la finalizacion ordenada del programa servidor */
+		    vec.sa_handler = (void *) finalizar;
+		    vec.sa_flags = 0;
+		    if ( sigaction(SIGTERM, &vec, (struct sigaction *) 0) == -1) {
+		        perror(" sigaction(SIGTERM)");
+		        fprintf(logFile,"%s: %s: unable to register the SIGTERM signal\n", getTime(), argv[0]);
+		        fclose(logFile);
+		        exit(1);
+		        }
 
-		while (!FIN) {
-            /* Meter en el conjunto de sockets los sockets UDP y TCP */
-            FD_ZERO(&readmask);
-            FD_SET(ls_TCP, &readmask);
-            FD_SET(s_UDP, &readmask);
-            /* 
-            Seleccionar el descriptor del socket que ha cambiado. Deja una marca en 
-            el conjunto de sockets (readmask)
-            */ 
-    	    if (ls_TCP > s_UDP) s_mayor=ls_TCP;
-    		else s_mayor=s_UDP;
+			while (!FIN) 
+			{
+		        /* Meter en el conjunto de sockets los sockets UDP y TCP */
+		        FD_ZERO(&readmask);
+		        FD_SET(ls_TCP, &readmask);
+		        FD_SET(s_UDP, &readmask);
+		        /* 
+		        Seleccionar el descriptor del socket que ha cambiado. Deja una marca en 
+		        el conjunto de sockets (readmask)
+		        */ 
+			    if (ls_TCP > s_UDP) s_mayor=ls_TCP;
+				else s_mayor=s_UDP;
 
-            if ( (numfds = select(s_mayor+1, &readmask, (fd_set *)0, (fd_set *)0, NULL)) < 0) {
-                if (errno == EINTR) {
-                    FIN=1;
-		            close (ls_TCP);
-		            close (s_UDP);
-                    perror("\nFinalizando el servidor. SeÃal recibida en elect\n "); 
-                }
-            }
-           else { 
-                /* Comprobamos si el socket seleccionado es el socket TCP */
-                if (FD_ISSET(ls_TCP, &readmask)) {
-                    /* Note that addrlen is passed as a pointer
-                     * so that the accept call can return the
-                     * size of the returned address.
-                     */
-    				/* This call will block until a new
-    				 * connection arrives.  Then, it will
-    				 * return the address of the connecting
-    				 * peer, and a new socket descriptor, s,
-    				 * for that connection.
-    				 */
-    			s_TCP = accept(ls_TCP, (struct sockaddr *) &clientaddr_in, &addrlen);
-    			if (s_TCP == -1) exit(1);
-    			switch (fork()) {
-        			case -1:	/* Can't fork, just exit. */
-        				exit(1);
-        			case 0:		/* Child process comes here. */
-                    			close(ls_TCP); /* Close the listen socket inherited from the daemon. */
-        				serverTCP(s_TCP, clientaddr_in);
-        				exit(0);
-        			default:	/* Daemon process comes here. */
-        					/* The daemon needs to remember
-        					 * to close the new accept socket
-        					 * after forking the child.  This
-        					 * prevents the daemon from running
-        					 * out of file descriptor space.  It
-        					 * also means that when the server
-        					 * closes the socket, that it will
-        					 * allow the socket to be destroyed
-        					 * since it will be the last close.
-        					 */
-        				close(s_TCP);
-        			}
-             } /* De TCP*/
+		        if ( (numfds = select(s_mayor+1, &readmask, (fd_set *)0, (fd_set *)0, NULL)) < 0) {
+		            if (errno == EINTR) {
+		                FIN=1;
+				        close (ls_TCP);
+				        close (s_UDP);
+		                perror("\nFinalizando el servidor. SeÃal recibida en elect\n "); 
+		            }
+		        }
+		       else { 
+		            /* Comprobamos si el socket seleccionado es el socket TCP */
+		            if (FD_ISSET(ls_TCP, &readmask)) {
+		                /* Note that addrlen is passed as a pointer
+		                 * so that the accept call can return the
+		                 * size of the returned address.
+		                 */
+						/* This call will block until a new
+						 * connection arrives.  Then, it will
+						 * return the address of the connecting
+						 * peer, and a new socket descriptor, s,
+						 * for that connection.
+						 */
+					s_TCP = accept(ls_TCP, (struct sockaddr *) &clientaddr_in, &addrlen);
+					if (s_TCP == -1) exit(1);
+					switch (fork()) {
+		    			case -1:	/* Can't fork, just exit. */
+		    				exit(1);
+		    			case 0:		/* Child process comes here. */
+		                			close(ls_TCP); /* Close the listen socket inherited from the daemon. */
+		    				serverTCP(s_TCP, clientaddr_in);
+		    				exit(0);
+		    			default:	/* Daemon process comes here. */
+		    					/* The daemon needs to remember
+		    					 * to close the new accept socket
+		    					 * after forking the child.  This
+		    					 * prevents the daemon from running
+		    					 * out of file descriptor space.  It
+		    					 * also means that when the server
+		    					 * closes the socket, that it will
+		    					 * allow the socket to be destroyed
+		    					 * since it will be the last close.
+		    					 */
+		    				close(s_TCP);
+		    			}
+          } /* De TCP*/
           /* Comprobamos si el socket seleccionado es el socket UDP */
-          if (FD_ISSET(s_UDP, &readmask)) {
+          if (FD_ISSET(s_UDP, &readmask)) 
+		  {
                 /* This call will block until a new
                 * request arrives.  Then, it will
                 * return the address of the client,
@@ -266,28 +270,28 @@ char *argv[];
 RECV:           
                 cc = recvfrom(s_UDP, buffer, BUFFERSIZE - 1, 0,
                    (struct sockaddr *)&clientaddr_in, &addrlen);
-                printf("He recibido %d bytes\n", cc);
-                if ( cc == -1) {
+
+                if ( cc == -1) 
+				{
                     printf("%s: recvfrom error\n", argv[0]);
                     exit (1);
-                    }
+                }
                 /* Make sure the message received is
                 * null terminated.
                 */
                 //buffer[cc]='\0';
-		switch(fork())
-		{
-			case -1:	/* Can't fork, just exit. */
-        				exit(1);
-        		case 0:		/* Child process comes here. */
-					pause();        
-        				serverUDP (s_UDP, buffer, cc, clientaddr_in);
-        				exit(0);
-			default:
-					goto RECV;
-		}
+				switch(fork())
+				{
+					case -1:	/* Can't fork, just exit. */
+								exit(1);
+						case 0:		/* Child process comes here. */       
+								serverUDP (s_UDP, buffer, cc, clientaddr_in);
+								exit(0);
+					default:
+							goto RECV;
+				}
                 
-                }
+          }
           }
 		}   /* Fin del bucle infinito de atención a clientes */
         /* Cerramos los sockets UDP y TCP */
@@ -369,20 +373,14 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 
 	/* Wait for a client request */
     packet package;
-    tcp_receive(s, &package);
+    socket_receive(s, &package, NULL, 0, TCP);
 
     if(package.opcode == RRQ)
-    {
-        get_server_tcp(s, &package);
-    }
+        get_server(s, &package, NULL, 0, TCP);
     else if(package.opcode == WRQ)
-    {
-        put_server_tcp(s, &package);
-    }
+        put_server(s, &package, NULL, 0, TCP);
     else
-    {
         fprintf(logFile, "%s: Unknown opcode value\n", getTime());
-    }
 
 		/* The port number must be converted first to host byte
 		 * order before printing.  On most hosts, this is not
@@ -428,6 +426,7 @@ void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clie
 
     addrlen = sizeof(struct sockaddr_in);
 
+	/* We create another socket to communicate with this specific client */
 	myaddr_in.sin_family = AF_INET;
 	myaddr_in.sin_addr.s_addr = INADDR_ANY;
 	myaddr_in.sin_port = 0;
@@ -444,22 +443,17 @@ void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clie
         fclose(logFile);
 		exit(1);
 	}
-	/* Wait for a client request */
+
+	/* Unserialize the first message received */
     packet package;
     unserialize((byte_t *)buffer, buffer_size, &package);
     
     if(package.opcode == RRQ)
-    {
-        get_server_udp(udp_socket, &package, &clientaddr_in, addrlen);
-    }
+        get_server(udp_socket, &package, &clientaddr_in, addrlen, UDP);
     else if(package.opcode == WRQ)
-    {
-        put_server_udp(udp_socket, &package, &clientaddr_in, addrlen);
-    }
+        put_server(udp_socket, &package, &clientaddr_in, addrlen, UDP);
     else
-    {
         fprintf(logFile, "%s: Unknown opcode value\n", getTime());
-    }
 
 	close(udp_socket);
  }

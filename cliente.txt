@@ -1,18 +1,10 @@
-Thu Nov 29 12:44:13 2018: Connected to localhost on port 43632
-Thu Nov 29 12:44:14 2018: Retries left = 4
-Thu Nov 29 12:44:15 2018: Retries left = 3
-Thu Nov 29 12:44:16 2018: Retries left = 2
-Thu Nov 29 12:44:17 2018: Retries left = 1
-Thu Nov 29 12:44:18 2018: Ran out retries, exiting...
-Thu Nov 29 12:44:18 2018: Connected to localhost on port 35118
-Thu Nov 29 12:44:19 2018: Retries left = 4
-Thu Nov 29 12:44:20 2018: Retries left = 3
-Thu Nov 29 12:44:21 2018: Retries left = 2
-Thu Nov 29 12:44:22 2018: Retries left = 1
-Thu Nov 29 12:44:23 2018: Ran out retries, exiting...
-Thu Nov 29 12:44:23 2018: Connected to localhost on port 49879
-Thu Nov 29 12:44:24 2018: Retries left = 4
-Thu Nov 29 12:44:25 2018: Retries left = 3
-Thu Nov 29 12:44:26 2018: Retries left = 2
-Thu Nov 29 12:44:27 2018: Retries left = 1
-Thu Nov 29 12:44:28 2018: Ran out retries, exiting...
+Fri Nov 30 20:06:11 2018: Connected to localhost on port 49996
+All done at Fri Nov 30 20:06:11 2018
+Fri Nov 30 20:06:22 2018: Connected to localhost on port 49998
+Fri Nov 30 20:06:22 2018: Error reading option code
+All done at Fri Nov 30 20:06:22 2018
+Fri Nov 30 20:06:40 2018: Connected to localhost on port 50000
+All done at Fri Nov 30 20:06:40 2018
+Fri Nov 30 20:06:52 2018: Connected to localhost on port 50002
+Fri Nov 30 20:06:52 2018: Error reading option code
+All done at Fri Nov 30 20:06:52 2018

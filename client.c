@@ -42,7 +42,7 @@ int main( int argc, char *argv[] )
 
 	
 	/* Print message indicating completion of task. */
-	fprintf(logFile, "All done at %s", getTime());
+	fprintf(logFile, "All done at %s\n", getTime());
 	fclose(logFile);
 	
 	return 0;
@@ -114,12 +114,12 @@ void clientcp( char *argv[] )
 
 	fprintf(logFile, "%s: Connected to %s on port %u\n", getTime(), argv[1], ntohs(myaddr_in.sin_port));
 
-	if(!strcmp(argv[3], "l")){
-		get_client_tcp(s, argv[4]);
-	}
-	else{
-		put_client_tcp(s, argv[4]);
-	}
+	if(!strcmp(argv[3], "l"))
+		get_client(s, argv[4], NULL, 0, TCP);
+	else
+		put_client(s, argv[4], NULL, 0, TCP);
+
+	shutdown_connection(s);
 
 }
 
@@ -195,9 +195,11 @@ void clientudp( char *argv[] )
 	 servaddr_in.sin_port = htons(PORT);
 	
 	if(!strcmp(argv[3], "e")){
-		put_client_udp(s, argv[4], &servaddr_in, addrlen);
+		put_client(s, argv[4], &servaddr_in, addrlen, UDP);
 	}
 	else{
-		get_client_udp(s, argv[4], &servaddr_in, addrlen);
+		get_client(s, argv[4], &servaddr_in, addrlen, UDP);
 	}
+
+	shutdown_connection(s);
 }

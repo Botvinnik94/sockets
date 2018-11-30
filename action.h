@@ -6,19 +6,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-/* TCP functions */
-void put_client_tcp(int socket, char *filename);
-void put_server_tcp(int socket, packet *package);
+/* Write functions */
+void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int addrlen, int type);
+void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, int addrlen, int type);
 
-void get_client_tcp(int socket, char *filename);
-void get_server_tcp(int socket, packet *package);
+/* Read functions */
+void get_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int addrlen, int type);
+void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, int addrlen, int type );
 
-/* UDP functions */
-void put_client_udp(int socket, char *filename, struct sockaddr_in *clientaddr_in, int addrlen);
-void put_server_udp(int socket, packet *package, struct sockaddr_in *clientaddr_in, int addrlen);
-
-void get_client_udp(int socket, char *filename, struct sockaddr_in *clientaddr_in, int addrlen);
-void get_server_udp(int socket, packet *package, struct sockaddr_in *clientaddr_in, int addrlen);
+/* Aux functions */
 
 void shutdown_connection(int socket);
 void register_sigalrm();
