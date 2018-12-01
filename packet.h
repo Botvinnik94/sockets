@@ -17,14 +17,14 @@
 #define ACK     0x04
 #define ERR     0x05
 
-#define TRUE 1
-#define FALSE 0
+#define TRUE    1
+#define FALSE   0
 
-#define ERR_UNDEFINED 0
-#define ERR_FILE_NOT_FOUND 1
-#define ERR_FULL_DISK 3
-#define ERR_ILLEGAL_OP 4
-#define ERR_FILE_EXISTS 6
+#define ERR_UNDEFINED       0x00
+#define ERR_FILE_NOT_FOUND  0x01
+#define ERR_FULL_DISK       0x03
+#define ERR_ILLEGAL_OP      0x04
+#define ERR_FILE_EXISTS     0x06
 
 typedef char bool;
 

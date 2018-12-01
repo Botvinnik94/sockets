@@ -8,7 +8,7 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 	byte_t buffer[MAX_DATA_SIZE];
 	size_t n_read;
 	char path[255] = "ficherosTFTPclient/";
-    long nBloq = 1;
+    uint16_t nBloq = 1;
 
 	/* Register SIGALRM if type is UDP */
 	if( type == UDP )
@@ -37,7 +37,7 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 		return;
 	}
 
-	/* Wait for server ACK (our custom ACK)  */
+	/* Wait for server ACK (protocol custom ACK)  */
     if( !socket_receive(socket, &package, servaddr_in, addrlen, type))
     {
         fclose(file);
@@ -50,11 +50,14 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 		/* First nBloq must be 0 */
 		if( package.ack_message.nBloq != 0 )
         {
+            free_packet(&package);
             fprintf(logFile, "%s: Wrong initial ACK number in 'put client'\n", getTime());
             fclose(file);
             return;
         }
 		
+        free_packet(&package);
+
 		/* Starts sending data to the server */
         while(TRUE)
 		{
@@ -83,6 +86,7 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
             {	/* Check if the ACK is correct (nBloq must be the same) */
                 if( nBloq != package.ack_message.nBloq )
                 {
+                    free_packet(&package);
                     fprintf(logFile, "%s: Wrong ACK number in 'put client'\n", getTime());
                     fclose(file);
                     return;
@@ -91,6 +95,7 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 			/* An error was received */
             else if( package.opcode == ERR)
             {
+                free_packet(&package);
                 fprintf(logFile, "%s: Error received sending data in 'put client'\n", getTime());
                 fclose(file);
                 return;
@@ -98,16 +103,18 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 			/* Unexpected opcode was received */
             else
             {
+                free_packet(&package);
                 fprintf(logFile, "%s: Unexpected error in 'put client'\n", getTime());
                 fclose(file);
                 return;
             }
-	
+
 			/* If n_read is less than MAX_DATA_SIZE, it means the read is done
 			if n_read = MAX_DATA_SIZE, it will iterate one more time to send an empty 
 			message, so the receiver knows it finished reading */
             if(n_read < MAX_DATA_SIZE) break;
 
+            free_packet(&package);
             nBloq++;
         }
 	}
@@ -120,6 +127,7 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
         fprintf(logFile, "%s: Unexpected opcode at 'put client'\n",getTime());
     }
 
+    free_packet(&package);
     fclose(file);
 
 }
@@ -128,6 +136,8 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 {
 	FILE *file;
 	char path[255] = "ficherosTFTPserver/";
+    uint16_t nBloq = 0;
+    size_t data_size = 0;
 
 	/* Register SIGALRM if type is UDP */
 	if( type == UDP )
@@ -137,6 +147,7 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 	strcat(path, package->request_message.filename);
     if( access(path, F_OK) == 0 )
     {
+        free_packet(package);
         if( !build_ERR_packet(ERR_FILE_EXISTS, "File already exists at 'put_server'", package) )
         {           
             fprintf(logFile, "%s: Error building ERR packet\n", getTime());
@@ -153,7 +164,10 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
     }
 	/* If file doesn't exist, it continues */
 	else
-    {	/* First ACK is built with nBloq = 0 */
+    {	
+        free_packet(package);
+
+        /* First ACK is built with nBloq = 0 */
         if( !build_ACK_packet(0, package) )
         {           
             fprintf(logFile, "%s: Error building ACK packet at 'put server'\n", getTime());
@@ -173,30 +187,45 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
         /* Iterates while not reveiving -1 (ERROR) or 0 (Shutdown) */
         while( socket_receive(socket, package, clientaddr_in, addrlen, type) )
-        {	/* Write the data received */
-            if( fwrite(package->data_message.data, sizeof(byte_t), package->data_message.data_size, file) < package->data_message.data_size )
+        {	
+            if (package->opcode == DATA)
             {
-                fprintf(logFile, "%s: Error writing file at 'put server'\n", getTime());
-                fclose(file);
+                data_size = package->data_message.data_size;
+                /* Write the data received */
+                if( fwrite(package->data_message.data, sizeof(byte_t), data_size, file) < data_size )
+                {
+                    fprintf(logFile, "%s: Error writing file at 'put server'\n", getTime());
+                    fclose(file);
+                    break;
+                }
+
+                nBloq = package->data_message.nBloq;
+                free_packet(package);
+
+                if( !build_ACK_packet(nBloq, package) )
+                {           
+                    fprintf(logFile, "%s: Error building ACK packet\n", getTime());
+                    return;
+                }
+
+                if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
+                {
+                    fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
+                    return;
+                }
+
+                /* if data size is less than MAX_DATA_SIZE, it means writing is done */
+                if(data_size < MAX_DATA_SIZE) break;
+                free_packet(package);
+            }
+            else
+            {
+                fprintf(logFile, "%s: Unexpected opcode while writing data on 'put server'\n", getTime());
                 break;
             }
-
-            if( !build_ACK_packet(package->data_message.nBloq, package) )
-            {           
-                fprintf(logFile, "%s: Error building ACK packet\n", getTime());
-                return;
-            }
-
-            if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
-            {
-                fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
-                return;
-            }
-
-			/* if data size is less than MAX_DATA_SIZE, it means writing is done */
-            if(package->data_message.data_size < MAX_DATA_SIZE) break;
         }
 
+        free_packet(package);
         fclose(file);
     }
 
@@ -207,8 +236,9 @@ void get_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 
 	packet package;
 	byte_t buffer[MAX_DATA_SIZE];
-	size_t n_read;
 	char path[255] = "ficherosTFTPclient/";
+    uint16_t nBloq = 0;
+    size_t data_size = 0;
 
 	/* Register SIGALRM if type is UDP */
 	if( type == UDP )
@@ -240,31 +270,47 @@ void get_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
         FILE *file = fopen(path, "w");
         if(file == NULL)
 		{
+            free_packet(&package);
             fprintf(logFile, "%s: error opening file (filename=%s) at 'get client'\n", getTime(),path);
             return;
         }
+        free_packet(&package);
 
         while( socket_receive(socket, &package, servaddr_in, addrlen, type) )
         {
-            if( fwrite(package.data_message.data, sizeof(byte_t), package.data_message.data_size, file) < package.data_message.data_size )
+            if(package.opcode == DATA)
             {
-                fprintf(logFile, "%s: Error writing file at 'get client'\n", getTime());
+                data_size = package.data_message.data_size;
+
+                if( fwrite(package.data_message.data, sizeof(byte_t), data_size, file) < data_size )
+                {
+                    fprintf(logFile, "%s: Error writing file at 'get client'\n", getTime());
+                    break;
+                }
+
+                nBloq = package.data_message.nBloq;
+                free_packet(&package);
+
+                if( !build_ACK_packet(nBloq, &package) )
+                {           
+                    fprintf(logFile, "%s: Error building ACK packet\n", getTime());
+                    return;
+                }
+
+                if( !socket_send(socket, &package, servaddr_in, addrlen, type) )
+                {
+                    fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
+                    return;
+                }
+
+                if(data_size < MAX_DATA_SIZE) break;
+                free_packet(&package);
+            }
+            else
+            {
+                fprintf(logFile, "%s: Unexpected opcode while writing data on 'put server'\n", getTime());
                 break;
             }
-
-            if( !build_ACK_packet(package.data_message.nBloq, &package) )
-            {           
-                fprintf(logFile, "%s: Error building ACK packet\n", getTime());
-                return;
-            }
-
-            if( !socket_send(socket, &package, servaddr_in, addrlen, type) )
-            {
-                fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
-                return;
-            }
-
-            if(package.data_message.data_size < MAX_DATA_SIZE) break;
         }
 
         fclose(file);
@@ -278,7 +324,7 @@ void get_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
         fprintf(logFile, "%s: Unexpected opcode at 'get client tcp'\n",getTime());
     }
 
-
+    free_packet(&package);
 }
 
 void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, int addrlen, int type )
@@ -287,7 +333,7 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
     size_t n_read;
 	char path[255] = "ficherosTFTPserver/";
     byte_t buffer[MAX_DATA_SIZE];
-    long nBloq = 1;
+    uint16_t nBloq = 1;
 
 	/* Register SIGALRM if type is UDP */
 	if( type == UDP )
@@ -311,9 +357,11 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
         return;
     }
-
     else
-    {	/* The first ACK must be nBloq=0 */
+    {	
+        free_packet(package);
+
+        /* The first ACK must be nBloq=0 */
         if( !build_ACK_packet(0, package) )
         {           
             fprintf(logFile, "%s: Error building ACK packet\n", getTime());
@@ -363,6 +411,7 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
             {
                 if( nBloq != package->ack_message.nBloq )
                 {
+                    free_packet(package);
                     fprintf(logFile, "%s: Wrong ACK number in 'put client udp'\n", getTime());
                     fclose(file);
                     return;
@@ -371,6 +420,7 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 			/* An error message was received */
             else if( package->opcode == ERR)
             {
+                free_packet(package);
                 fprintf(logFile, "%s: Error received sending data in 'put client udp'\n", getTime());
                 fclose(file);
                 return;
@@ -378,18 +428,23 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 			/* Unexpected opcode received */
             else
             {
+                free_packet(package);
                 fprintf(logFile, "%s: Unexpected error in 'put client udp'\n", getTime());
                 fclose(file);
                 return;
             }
 
             if(n_read < MAX_DATA_SIZE) break;
+
+            free_packet(package);
             nBloq++;
         }
 
         fclose(file);
 
 	}
+
+    free_packet(package);
 }
 
 
@@ -404,9 +459,9 @@ void shutdown_connection(int socket)
 
 void register_sigalrm()
 {
-    /* Registrar SIGALRM para no quedar bloqueados en los recvfrom */
+    /* Register SIGALRM in order to make timeouts for UDP receives */
     struct sigaction vec;
-    vec.sa_handler = (void *) handler;
+    vec.sa_handler = (void *) timeout_handler;
     vec.sa_flags = 0;
 
     if ( sigaction(SIGALRM, &vec, (struct sigaction *) 0) == -1)
@@ -417,9 +472,9 @@ void register_sigalrm()
     }
 }
 
-void handler()
+void timeout_handler()
 {
-	static int retries_left = 5;
+	static int retries_left = NUM_RETRIES;
 
     if( --retries_left )
     {

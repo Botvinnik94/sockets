@@ -17,13 +17,12 @@ bool socket_receive(int socket, packet *package, struct sockaddr_in *clientaddr_
 	{
 		bytes_received = recv(socket, buffer, MAX_BUFFER_SIZE, 0);
 		if(bytes_received == -1 || bytes_received == 0){
-        if( bytes_received == -1 )
-		    fprintf(logFile,"%s: recv error received\n", getTime());	
-        else
-            fprintf(logFile,"%s: recv shutdown received\n", getTime());	
-		return FALSE;
-	}
-
+            if( bytes_received == -1 )
+                fprintf(logFile,"%s: recv error received\n", getTime());	
+            else
+                fprintf(logFile,"%s: recv shutdown received\n", getTime());	
+            return FALSE;
+	    }
 	}
 	else if( type == UDP)
 	{
@@ -39,7 +38,6 @@ bool socket_receive(int socket, packet *package, struct sockaddr_in *clientaddr_
 			return FALSE;
 		}
 	}
-
 	else
 	{
 		fprintf(logFile, "%s: unexpected type(TCP(1)/UDP(2), got:%d)\n", getTime(), type);	
@@ -69,7 +67,7 @@ bool socket_send(int socket, packet *package, struct sockaddr_in *clientaddr_in,
 		return FALSE;
 
 	if( type == TCP )
-		send(socket, buffer, buffer_size, 0);
+		bytes_sent = send(socket, buffer, buffer_size, 0);
 	else if( type == UDP )
 		bytes_sent = sendto(socket, buffer, buffer_size, 0, (struct sockaddr*)clientaddr_in, addrlen);
 	else

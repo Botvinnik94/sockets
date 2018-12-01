@@ -22,8 +22,8 @@ bool unserialize(byte_t *buffer, size_t buffer_size, packet *package)
         case WRQ:
             start_filename = buffer + 2;
             start_mode = start_filename + strlen(start_filename) + 1;
-            package->request_message.filename = malloc(sizeof(char) * strlen(start_filename));
-            package->request_message.mode = malloc(sizeof(char) * strlen(start_mode));
+            package->request_message.filename = malloc(sizeof(char) * (strlen(start_filename) + 1));
+            package->request_message.mode = malloc(sizeof(char) * (strlen(start_mode) + 1));
             strcpy(package->request_message.filename, start_filename);
             strcpy(package->request_message.mode, start_mode);
             break;
@@ -38,7 +38,7 @@ bool unserialize(byte_t *buffer, size_t buffer_size, packet *package)
             break;
         case ERR:
             package->err_message.err_code = network_to_host_short(buffer + 2);
-			package->err_message.msg = malloc(sizeof(char) * strlen(package->err_message.msg));
+			package->err_message.msg = malloc(sizeof(char) * (strlen(package->err_message.msg) + 1));
             strcpy(package->err_message.msg, buffer + 4);
             break;
         default:
@@ -86,7 +86,7 @@ byte_t* serialize(packet *package, size_t *buffer_size) {
 			memcpy(buffer + 2, &temp, 2);
 			break;
 		case ERR:
-            *buffer_size = sizeof(byte_t) * (strlen(package->err_message.msg) + 4);
+            *buffer_size = sizeof(byte_t) * (strlen(package->err_message.msg) + 1 + 4);
 			buffer = malloc(*buffer_size);
 			memcpy(buffer, &opcode, 2);
 			temp = htons(package->err_message.err_code);
@@ -99,7 +99,6 @@ byte_t* serialize(packet *package, size_t *buffer_size) {
 	}
 
 	return buffer;
-
 }
 
 void free_packet(packet * package){
@@ -124,9 +123,9 @@ bool build_RQ_packet(uint16_t type, char* filename, packet *package)
 {
 	if(package != NULL){
 		package->opcode = type;
-		package->request_message.filename = malloc(sizeof(char) * strlen(filename));
+		package->request_message.filename = malloc(sizeof(char) * (strlen(filename) + 1));
 		strcpy(package->request_message.filename, filename);
-		package->request_message.mode = malloc(sizeof(char) * strlen("octet"));
+		package->request_message.mode = malloc(sizeof(char) * (strlen("octet") + 1));
 		strcpy(package->request_message.mode, "octet");
 		return TRUE;
 	}
