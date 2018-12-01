@@ -450,8 +450,23 @@ void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clie
         get_server(udp_socket, &package, &clientaddr_in, addrlen, UDP);
     else if(package.opcode == WRQ)
         put_server(udp_socket, &package, &clientaddr_in, addrlen, UDP);
+    /* Illegal operation. Inform the client */
     else
+    {
         fprintf(logFile, "%s: Unexpected opcode value\n", getTime());
+        if( !build_ERR_packet(ERR_ILLEGAL_OP, "Illegal operation", &package) )
+        {           
+            fprintf(logFile, "%s: Error building ERR packet\n", getTime());
+            return;
+        }
+
+        if( !socket_send(udp_socket, &package, &clientaddr_in, addrlen, UDP) )
+        {
+            fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
+            return;
+        }
+    }
+
 
 	close(udp_socket);
  }

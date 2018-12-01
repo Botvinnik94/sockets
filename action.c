@@ -192,11 +192,39 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
             {
                 data_size = package->data_message.data_size;
                 /* Write the data received */
-                if( fwrite(package->data_message.data, sizeof(byte_t), data_size, file) < data_size )
+                fwrite(package->data_message.data, sizeof(byte_t), data_size, file);
+
+                /* Error checking in every write. In case of error inform the client and exit */
+                if( ferror(file) )
                 {
                     fprintf(logFile, "%s: Error writing file at 'put server'\n", getTime());
                     fclose(file);
-                    break;
+
+                    free_packet(package);
+                    if(errno == ENOSPC || errno == EDQUOT || errno == ENOMEM)
+                    {
+                        if( !build_ERR_packet(ERR_FULL_DISK, "Not enough disk space in the server.", package) )
+                        {           
+                            fprintf(logFile, "%s: Error building ERR packet\n", getTime());
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        if( !build_ERR_packet(ERR_UNDEFINED, "Undefined error writing the file", package) )
+                        {           
+                            fprintf(logFile, "%s: Error building ERR packet\n", getTime());
+                            return;
+                        }
+                    }
+
+                    if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
+                    {
+                        fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
+                        return;
+                    }
+
+                    return;
                 }
 
                 nBloq = package->data_message.nBloq;
@@ -218,10 +246,25 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
                 if(data_size < MAX_DATA_SIZE) break;
                 free_packet(package);
             }
+            /* The server receives an unexpected operation. Inform the client and exit */
             else
             {
+                fclose(file);
+
                 fprintf(logFile, "%s: Unexpected opcode while writing data on 'put server'\n", getTime());
-                break;
+                if( !build_ERR_packet(ERR_ILLEGAL_OP, "Unexpected operation.", package) )
+                {           
+                    fprintf(logFile, "%s: Error building ERR packet\n", getTime());
+                    return;
+                }
+
+                if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
+                {
+                    fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
+                    return;
+                }
+
+                return;
             }
         }
 
@@ -343,7 +386,7 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
     /* File has to exist so the server can send the file */
     if( access(path, F_OK) != 0 )
     {
-        if( !build_ERR_packet(ERR_FILE_EXISTS, "File already exists", package) )
+        if( !build_ERR_packet(ERR_FILE_NOT_FOUND, "File does not exist", package) )
         {           
             fprintf(logFile, "%s: Error building ERR packet\n", getTime());
             return;
@@ -414,6 +457,19 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
                     free_packet(package);
                     fprintf(logFile, "%s: Wrong ACK number in 'put client udp'\n", getTime());
                     fclose(file);
+
+                    if( !build_ERR_packet(ERR_ILLEGAL_OP, "ACK block number does not match", package) )
+                    {           
+                        fprintf(logFile, "%s: Error building ERR packet\n", getTime());
+                        return;
+                    }
+
+                    if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
+                    {
+                        fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
+                        return;
+                    }
+
                     return;
                 }
             }
@@ -431,6 +487,19 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
                 free_packet(package);
                 fprintf(logFile, "%s: Unexpected error in 'put client udp'\n", getTime());
                 fclose(file);
+
+                if( !build_ERR_packet(ERR_ILLEGAL_OP, "Unexpected operation", package) )
+                {           
+                    fprintf(logFile, "%s: Error building ERR packet\n", getTime());
+                    return;
+                }
+
+                if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
+                {
+                    fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
+                    return;
+                }
+
                 return;
             }
 
