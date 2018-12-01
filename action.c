@@ -292,7 +292,7 @@ void get_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
     if( access(path, F_OK) == 0 )
     {   
         fprintf(logFile, "%s: File already exists at 'get client'(filename=%s)\n", getTime(), path);
-        return;
+		return; 
     }
 
 	if(!build_RQ_packet(RRQ, filename, &package))

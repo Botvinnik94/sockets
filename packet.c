@@ -38,7 +38,7 @@ bool unserialize(byte_t *buffer, size_t buffer_size, packet *package)
             break;
         case ERR:
             package->err_message.err_code = network_to_host_short(buffer + 2);
-			package->err_message.msg = malloc(sizeof(char) * (strlen(package->err_message.msg) + 1));
+			package->err_message.msg = malloc(sizeof(char) * (strlen(buffer + 4) + 1));
             strcpy(package->err_message.msg, buffer + 4);
             break;
         default:

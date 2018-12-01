@@ -371,14 +371,28 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 
 	/* Wait for a client request */
     packet package;
-    socket_receive(s, &package, NULL, 0, TCP);
+    if( !socket_receive(s, &package, NULL, 0, TCP)) return;
 
     if(package.opcode == RRQ)
         get_server(s, &package, NULL, 0, TCP);
     else if(package.opcode == WRQ)
         put_server(s, &package, NULL, 0, TCP);
-    else
-        fprintf(logFile, "%s: Unexpected opcode value\n", getTime());
+    else {
+		fprintf(logFile, "%s: Unexpected opcode value(TCP)\n", getTime());
+
+		if( !build_ERR_packet(ERR_ILLEGAL_OP, "Illegal operation", &package) )
+        {           
+            fprintf(logFile, "%s: Error building ERR packet\n", getTime());
+            return;
+        }
+
+        if( !socket_send(s, &package, NULL, 0, TCP) )
+        {
+            fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
+            return;
+        }
+	}
+        
 
 		/* The port number must be converted first to host byte
 		 * order before printing.  On most hosts, this is not
@@ -453,7 +467,7 @@ void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clie
     /* Illegal operation. Inform the client */
     else
     {
-        fprintf(logFile, "%s: Unexpected opcode value\n", getTime());
+        fprintf(logFile, "%s: Unexpected opcode value(UDP)\n", getTime());
         if( !build_ERR_packet(ERR_ILLEGAL_OP, "Illegal operation", &package) )
         {           
             fprintf(logFile, "%s: Error building ERR packet\n", getTime());
