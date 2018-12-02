@@ -124,9 +124,31 @@ En efecto, se observan dos tipos de errores en el log de los clientes: un tipo d
 
 En el log del servidor, se observan las conexiones TCP de modo análogo a la prueba anterior, pero además, los cierres de conexión (shutdown) de los clientes TCP de lectura, que abren una conexión en el socket solo para cerrarlas poco después al comprobar que ya existe el archivo que querian recibir.\\
 
-La tercera prueba consistirá en lanzar el servidor en una máquina y un cliente en otra, en una subred diferente, para así comprobar que se envía de forma correcta un archivo a través de internet.\\
+La tercera prueba consistirá en lanzar el servidor en una máquina y un cliente en otra, en una subred diferente, para así comprobar que se envía de forma correcta un archivo a través de internet.
 
-Para ello, se hace port-forwarding en el router a una máquina de la subred donde residirá el servidor. El cliente, por su parte, deberá indicar al ejecutarse que el host está en la IP pública del router del servidor, conectándose al puerto previamente abierto en el mismo.
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.13]{images/cloud}
+\caption{Prueba 3}
+\end{figure}
+
+Para ello, se hace port-forwarding en el router a una máquina de la subred donde residirá el servidor. El cliente, por su parte, deberá indicar al ejecutarse que el host está en la IP pública del router del servidor, conectándose al puerto previamente abierto en el mismo.\\
+
+Teniendo el servidor activo lanzamos un cliente desde una subred diferente, en modo escritura, para enviarle un archivo y así comprobar el correcto funcionamiento.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{images/client_after_3}
+\caption{Cliente prueba 3}
+\end{figure}
+
+Comprobamos el directorio del servidor y comprobamos que el fichero ha llegado.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.55]{images/im1}
+\caption{Directorio servidor prueba 3}
+\end{figure}
 
 % Your document ends here!
 \end{document}

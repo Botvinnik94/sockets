@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6800 64-bit) (preloaded format=pdflatex 2018.9.18)  1 DEC 2018 20:52
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6800 64-bit) (preloaded format=pdflatex 2018.9.18)  2 DEC 2018 20:38
 entering extended mode
 **./memoria.tex
 (memoria.tex
@@ -499,33 +499,56 @@ Underfull \hbox (badness 10000) in paragraph at lines 125--126
 
  []
 
+<images/cloud.png, id=21, 2007.5pt x 501.875pt>
+File: images/cloud.png Graphic file (type png)
+<use images/cloud.png>
+Package pdftex.def Info: images/cloud.png  used on input line 131.
+(pdftex.def)             Requested size: 260.98416pt x 65.24603pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 127--128
+Overfull \hbox (8.98416pt too wide) in paragraph at lines 131--132
+ [][] 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 135--136
 
  []
 
+<images/client_after_3.png, id=22, 524.71031pt x 36.135pt>
+File: images/client_after_3.png Graphic file (type png)
+<use images/client_after_3.png>
+Package pdftex.def Info: images/client_after_3.png  used on input line 141.
+(pdftex.def)             Requested size: 236.11745pt x 16.26057pt.
 [2 <./images/script_prueba_1.png> <./images/log_cliente_prueba_1.png> <./images
 /log_server_prueba_1.png> <./images/client_after_1.png> <./images/server_after_
-1.png> <./images/log_cliente_prueba_2.png> <./images/log_server_prueba_2.png>]
-(memoria.aux) ) 
+1.png> <./images/log_cliente_prueba_2.png> <./images/log_server_prueba_2.png> <
+./images/cloud.png (PNG copy)>]
+<images/im1.png, id=33, 458.46281pt x 48.18pt>
+File: images/im1.png Graphic file (type png)
+<use images/im1.png>
+Package pdftex.def Info: images/im1.png  used on input line 149.
+(pdftex.def)             Requested size: 252.15532pt x 26.49905pt.
+ [3
+
+ <./images/client_after_3.png> <./images/im1.png>] (memoria.aux) ) 
 Here is how much of TeX's memory you used:
- 4181 strings out of 492973
- 67032 string characters out of 3123151
+ 4196 strings out of 492973
+ 67343 string characters out of 3123151
  141042 words of memory out of 3000000
- 7993 multiletter control sequences out of 15000+200000
+ 8005 multiletter control sequences out of 15000+200000
  34510 words of font info for 65 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,6n,25p,534b,212s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/
-enc/dvips/base/8r.enc}<C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKTeX 2.9
-/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/AlfonsoJosé/AppData/Local/
-Programs/MíKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Users/AlfonsoJosé/Ap
-pData/Local/Programs/MíKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><C:/Users/Al
-fonsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb>
-
-Output written on memoria.pdf (2 pages, 230083 bytes).
+{C:/Users/Alf
+onsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/enc/dvips/base/8r.enc}<C:/Us
+ers/AlfonsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/type1/public/amsfonts
+/cm/cmsy7.pfb><C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/t
+ype1/urw/times/utmb8a.pfb><C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKTeX
+ 2.9/fonts/type1/urw/times/utmbi8a.pfb><C:/Users/AlfonsoJosé/AppData/Local/Pro
+grams/MíKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb>
+Output written on memoria.pdf (3 pages, 302074 bytes).
 PDF statistics:
- 45 PDF objects out of 1000 (max. 8388607)
+ 53 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 46 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 61 words of extra memory for PDF output out of 10000 (max. 10000000)
 
