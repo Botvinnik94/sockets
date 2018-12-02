@@ -1,3 +1,11 @@
+/*
+ *      Práctica sockets 2018 - Redes I - TFTP
+ *      client.c
+ *
+ *      Alfonso José Mateos Hoyos - 44059172G
+ *      Gabino Luis Lazo - 71028058X
+ */
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/errno.h>
@@ -38,11 +46,10 @@ int main( int argc, char *argv[] )
 	if( !strcmp(argv[2], "TCP") )
 		clientcp( argv );
 	else
-		clientudp( argv ); /* TO DO */
-
+		clientudp( argv );
 	
 	/* Print message indicating completion of task. */
-	fprintf(logFile, "All done at %s", getTime());
+	fprintf(logFile, "All done at %s\n", getTime());
 	fclose(logFile);
 	
 	return 0;
@@ -114,12 +121,12 @@ void clientcp( char *argv[] )
 
 	fprintf(logFile, "%s: Connected to %s on port %u\n", getTime(), argv[1], ntohs(myaddr_in.sin_port));
 
-	if(!strcmp(argv[3], "l")){
-		get_client_tcp(s, argv[4]);
-	}
-	else{
-		put_client_tcp(s, argv[4]);
-	}
+	if(!strcmp(argv[3], "l"))
+		get_client(s, argv[4], NULL, 0, TCP);
+	else
+		put_client(s, argv[4], NULL, 0, TCP);
+
+	shutdown_connection(s);
 
 }
 
@@ -161,33 +168,33 @@ void clientudp( char *argv[] )
     }
 
 
-            /* The port number must be converted first to host byte
-             * order before printing.  On most hosts, this is not
-             * necessary, but the ntohs() call is included here so
-             * that this program could easily be ported to a host
-             * that does require it.
-             */
+    /* The port number must be converted first to host byte
+    * order before printing.  On most hosts, this is not
+    * necessary, but the ntohs() call is included here so
+    * that this program could easily be ported to a host
+    * that does require it.
+    */
     fprintf(logFile, "%s: Connected to %s on port %u\n", getTime(), argv[1], ntohs(myaddr_in.sin_port));
 
 	/* Set up the server address. */
 	servaddr_in.sin_family = AF_INET;
-		/* Get the host information for the server's hostname that the
-		 * user passed in.
-		 */
-      memset (&hints, 0, sizeof (hints));
-      hints.ai_family = AF_INET;
- 	 /* esta función es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta*/
+	/* Get the host information for the server's hostname that the
+	* user passed in.
+	*/
+    memset (&hints, 0, sizeof (hints));
+    hints.ai_family = AF_INET;
     errcode = getaddrinfo (argv[1], NULL, &hints, &res); 
     if (errcode != 0){
-			/* Name was not found.  Return a
-			 * special value signifying the error. */
-		fprintf(logFile, "%s: %s No es posible resolver la IP de %s\n", getTime(),
+		/* Name was not found.  Return a
+		* special value signifying the error.
+        */
+		fprintf(logFile, "%s: %s Cannot resolve IP from %s\n", getTime(),
 				argv[0], argv[1]);
 		fclose(logFile);
 		exit(1);
-      }
+    }
     else {
-			/* Copy address of host */
+		/* Copy address of host */
 		servaddr_in.sin_addr = ((struct sockaddr_in *) res->ai_addr)->sin_addr;
 	 }
      freeaddrinfo(res);
@@ -195,9 +202,10 @@ void clientudp( char *argv[] )
 	 servaddr_in.sin_port = htons(PORT);
 	
 	if(!strcmp(argv[3], "e")){
-		put_client_udp(s, argv[4], &servaddr_in, addrlen);
+		put_client(s, argv[4], &servaddr_in, addrlen, UDP);
 	}
 	else{
-		get_client_udp(s, argv[4], &servaddr_in, addrlen);
+		get_client(s, argv[4], &servaddr_in, addrlen, UDP);
 	}
+
 }
