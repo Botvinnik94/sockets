@@ -1,3 +1,11 @@
+/*
+ *      Práctica sockets 2018 - Redes I - TFTP
+ *      transfer.c
+ *
+ *      Alfonso José Mateos Hoyos - 44059172G
+ *      Gabino Luis Lazo - 71028058X
+ */
+
 #include "transfer.h"
 
 extern FILE* logFile;

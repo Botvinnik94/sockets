@@ -1,3 +1,11 @@
+/*
+ *      Práctica sockets 2018 - Redes I - TFTP
+ *      action.c
+ *
+ *      Alfonso José Mateos Hoyos - 44059172G
+ *      Gabino Luis Lazo - 71028058X
+ */
+
 #include "action.h"
 
 extern FILE* logFile;

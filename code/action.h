@@ -1,3 +1,11 @@
+/*
+ *      Práctica sockets 2018 - Redes I - TFTP
+ *      action.h
+ *
+ *      Alfonso José Mateos Hoyos - 44059172G
+ *      Gabino Luis Lazo - 71028058X
+ */
+
 #ifndef __ACTION_H__
 #define __ACTION_H__
 

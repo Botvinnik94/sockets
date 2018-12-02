@@ -1,10 +1,11 @@
 /*
- *          		S E R V I D O R
+ *      Práctica sockets 2018 - Redes I - TFTP
+ *      server.c
  *
- *	This is an example program that demonstrates the use of
- *	sockets TCP and UDP as an IPC mechanism.  
- *
+ *      Alfonso José Mateos Hoyos - 44059172G
+ *      Gabino Luis Lazo - 71028058X
  */
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/errno.h>
@@ -19,32 +20,20 @@
 #include <unistd.h>
 #include "action.h"
 
-
-
-#define PUERTO 9172
-#define ADDRNOTFOUND	0xffffffff	/* return address for unfound host */
-#define BUFFERSIZE	1024	/* maximum size of packets to be received */
-#define TAM_BUFFER 10
-#define MAXHOST 128
+#define PUERTO          9172
+#define ADDRNOTFOUND0   0xffffffff
+#define BUFFERSIZE      1024
+#define TAM_BUFFER      10
+#define MAXHOST         128
 
 extern int errno;
 
-/*
- *			M A I N
- *
- *	This routine starts the server.  It forks, leaving the child
- *	to do all the work, so it does not have to be run in the
- *	background.  It sets up the sockets.  It
- *	will loop forever, until killed by a signal.
- *
- */
- 
 void serverTCP(int s, struct sockaddr_in peeraddr_in);
 void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clientaddr_in);
 void errout(char *);		/* declare error out routine */
 
 FILE * logFile;
-int FIN = 0;             /* Para el cierre ordenado */
+int FIN = 0;
 void finalizar(){ FIN = 1; }
 
 int main(argc, argv)
@@ -70,14 +59,14 @@ char *argv[];
     
     struct sigaction vec;
 
-
+    /* Open the server log file */
     logFile = fopen("server.txt", "a");
 	if(logFile == NULL){
 		fprintf(logFile, "%s: Unable to create log file. Exiting...\n", getTime());
 		exit(1);
 	}
 
-		/* Create the listen socket. */
+	/* Create the listen socket. */
 	ls_TCP = socket (AF_INET, SOCK_STREAM, 0);
 	if (ls_TCP == -1) {
 		perror(argv[0]);
@@ -183,17 +172,15 @@ char *argv[];
 				 * have to make wait calls to clean them up.
 				 */
 			if ( sigaction(SIGCHLD, &sa, NULL) == -1) {
-		        //perror(" sigaction(SIGCHLD)");
 		        fprintf(logFile,"%s: %s: unable to register the SIGCHLD signal\n", getTime(), argv[0]);
 		        fclose(logFile);
 		        exit(1);
 		        }
 		        
-				/* Registrar SIGTERM para la finalizacion ordenada del programa servidor */
+			/* Register SIGTERM for an orderly server shutdown */
 		    vec.sa_handler = (void *) finalizar;
 		    vec.sa_flags = 0;
 		    if ( sigaction(SIGTERM, &vec, (struct sigaction *) 0) == -1) {
-		        //perror(" sigaction(SIGTERM)");
 		        fprintf(logFile,"%s: %s: unable to register the SIGTERM signal\n", getTime(), argv[0]);
 		        fclose(logFile);
 		        exit(1);
@@ -217,7 +204,7 @@ char *argv[];
 		                FIN=1;
 				        close (ls_TCP);
 				        close (s_UDP);
-		                fprintf(logFile, "\nFinalizando el servidor. SeÃal recibida en elect\n "); 
+		                fprintf(logFile, "%s: Interrupt signal in select\n", getTime()); 
 		            }
 		        }
 		        else { 
@@ -275,15 +262,12 @@ char *argv[];
                                 fprintf(logFile, "%s: recvfrom error\n", argv[0]);
                                 exit (1);
                             }
-                            /* Make sure the message received is
-                            * null terminated.
-                            */
-                            //buffer[cc]='\0';
+
                             switch(fork())
                             {
                                 case -1:	/* Can't fork, just exit. */
                                     exit(1);
-                                case 0:		/* Child process comes here. */       
+                                case 0:		/* Child process comes here. */
                                     serverUDP (s_UDP, buffer, cc, clientaddr_in);
                                     exit(0);
                                 default:
@@ -292,15 +276,15 @@ char *argv[];
                 
                     }
                 }
-		    }   /* Fin del bucle infinito de atención a clientes */
-        /* Cerramos los sockets UDP y TCP */
+		    }
+
         close(ls_TCP);
         close(s_UDP);
     
-        fprintf(logFile, "\nFin de programa servidor!\n");
+        fprintf(logFile, "\nServer exiting...\n");
         fclose(logFile);
 
-	default:		/* Parent process comes here. */
+	default:
 		exit(0);
 	}
 
@@ -335,37 +319,32 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 	 * daemon loop above.
 	 */
 	 
-     status = getnameinfo((struct sockaddr *)&clientaddr_in,sizeof(clientaddr_in),
+    status = getnameinfo((struct sockaddr *)&clientaddr_in,sizeof(clientaddr_in),
                            hostname,MAXHOST,NULL,0,0);
-     if(status){
-           	/* The information is unavailable for the remote
-			 * host.  Just format its internet address to be
-			 * printed out in the logging information.  The
-			 * address will be shown in "internet dot format".
-			 */
-			 /* inet_ntop para interoperatividad con IPv6 */
-            if (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), hostname, MAXHOST) == NULL)
-            	fprintf(logFile, "ERROR: inet_ntop \n");
-             }
-    /* Log a startup message. */
-    time (&timevar);
-		/* The port number must be converted first to host byte
-		 * order before printing.  On most hosts, this is not
-		 * necessary, but the ntohs() call is included here so
-		 * that this program could easily be ported to a host
-		 * that does require it.
-		 */
-	fprintf(logFile, "Startup from %s port %u at %s",
-		hostname, ntohs(clientaddr_in.sin_port), (char *) ctime(&timevar));
+    if(status)
+    {
+    /* The information is unavailable for the remote
+	* host.  Just format its internet address to be
+	* printed out in the logging information.  The
+	* address will be shown in "internet dot format".
+	*/
+	/* inet_ntop para interoperatividad con IPv6 */
+    if (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), hostname, MAXHOST) == NULL)
+        fprintf(logFile, "ERROR: inet_ntop \n");
+    }
 
-		/* Set the socket for a lingering, graceful close.
-		 * This will cause a final close of this socket to wait until all of the
-		 * data sent on it has been received by the remote host.
-		 */
+    /* Log a startup message. */
+	fprintf(logFile, "%s: Startup from %s port %u.",
+		    getTime(), hostname, ntohs(clientaddr_in.sin_port));
+
+	/* Set the socket for a lingering, graceful close.
+	* This will cause a final close of this socket to wait until all of the
+	* data sent on it has been received by the remote host.
+	*/
 	linger.l_onoff  =1;
 	linger.l_linger =1;
-	if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger,
-					sizeof(linger)) == -1) {
+	if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) 
+    {
 		errout(hostname);
 	}
 
@@ -377,7 +356,9 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
         get_server(s, &package, NULL, 0, TCP);
     else if(package.opcode == WRQ)
         put_server(s, &package, NULL, 0, TCP);
-    else {
+    /* Illegal operation. Inform the client */
+    else 
+    {
 		fprintf(logFile, "%s: Unexpected opcode value(TCP)\n", getTime());
 
 		if( !build_ERR_packet(ERR_ILLEGAL_OP, "Illegal operation", &package) )
@@ -392,20 +373,11 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
             return;
         }
 	}
-        
 
-		/* The port number must be converted first to host byte
-		 * order before printing.  On most hosts, this is not
-		 * necessary, but the ntohs() call is included here so
-		 * that this program could easily be ported to a host
-		 * that does require it.
-		 */
+    close(s);
 
-
-
-
-	/*fprintf("Completed %s port %u, %d requests, at %s\n",
-		hostname, ntohs(clientaddr_in.sin_port), reqcnt, getTime());*/
+	fprintf(logFile, "%s: Completed %s port %u, %d requests\n", 
+            getTime(), hostname, ntohs(clientaddr_in.sin_port), reqcnt);
 }
 
 /*
@@ -419,13 +391,11 @@ void errout(char *hostname)
 
 
 /*
- *				S E R V E R U D P
+ *	serverUDP
  *
  *	This is the actual server routine that the daemon forks to
  *	handle each individual connection.  Its purpose is to receive
- *	the request packets from the remote client, process them,
- *	and return the results to the client.  It will also write some
- *	logging information to stdout.
+ *	the request packets from the remote client and process them.
  *
  */
 void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clientaddr_in)
@@ -480,7 +450,6 @@ void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clie
             return;
         }
     }
-
 
 	close(udp_socket);
  }

@@ -1,6 +1,12 @@
 #!/bin/bash
 
 host=$1
+serverID=$(pgrep server)
+if [ -z $serverID ]; then
+	echo "There is no server up"
+else
+	kill $serverID
+fi
 
 rm cliente.txt
 rm server.txt
@@ -17,11 +23,3 @@ make client
 ./client $host UDP l testFile6.txt &
 ./client $host TCP l testFile7.txt &
 ./client $host UDP l testFile8.txt &
-
-sleep 2
-serverID=$(pgrep server)
-if [ -z $serverID ]; then
-	echo "There is no server up"
-else
-	kill $serverID
-fi
