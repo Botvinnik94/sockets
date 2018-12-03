@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6800 64-bit) (preloaded format=pdflatex 2018.9.18)  2 DEC 2018 20:38
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6800 64-bit) (preloaded format=pdflatex 2018.9.18)  3 DEC 2018 18:11
 entering extended mode
 **./memoria.tex
 (memoria.tex
@@ -472,17 +472,12 @@ File: images/server_after_1.png Graphic file (type png)
 <use images/server_after_1.png>
 Package pdftex.def Info: images/server_after_1.png  used on input line 105.
 (pdftex.def)             Requested size: 240.75128pt x 23.9396pt.
-<images/log_cliente_prueba_2.png, id=19, 720.44156pt x 322.20375pt>
+<images/log_cliente_prueba_2.png, id=19, 515.67656pt x 320.69812pt>
 File: images/log_cliente_prueba_2.png Graphic file (type png)
 <use images/log_cliente_prueba_2.png>
 Package pdftex.def Info: images/log_cliente_prueba_2.png  used on input line 11
 3.
-(pdftex.def)             Requested size: 288.17151pt x 128.87921pt.
-
-Overfull \hbox (36.17151pt too wide) in paragraph at lines 113--114
- [][] 
- []
-
+(pdftex.def)             Requested size: 232.0523pt x 144.3128pt.
 <images/log_server_prueba_2.png, id=20, 425.33907pt x 93.34875pt>
 File: images/log_server_prueba_2.png Graphic file (type png)
 <use images/log_server_prueba_2.png>
@@ -528,27 +523,100 @@ File: images/im1.png Graphic file (type png)
 <use images/im1.png>
 Package pdftex.def Info: images/im1.png  used on input line 149.
 (pdftex.def)             Requested size: 252.15532pt x 26.49905pt.
- [3
 
- <./images/client_after_3.png> <./images/im1.png>] (memoria.aux) ) 
+Underfull \hbox (badness 10000) in paragraph at lines 153--154
+
+ []
+
+<images/server_before_4.png, id=34, 531.9875pt x 103.38625pt>
+File: images/server_before_4.png Graphic file (type png)
+<use images/server_before_4.png>
+Package pdftex.def Info: images/server_before_4.png  used on input line 159.
+(pdftex.def)             Requested size: 239.39217pt x 46.52338pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 163--164
+
+ []
+
+<images/client_before_4.png, id=35, 569.12625pt x 102.3825pt>
+File: images/client_before_4.png Graphic file (type png)
+<use images/client_before_4.png>
+Package pdftex.def Info: images/client_before_4.png  used on input line 169.
+(pdftex.def)             Requested size: 256.10445pt x 46.07169pt.
+
+Overfull \hbox (4.10445pt too wide) in paragraph at lines 169--170
+ [][] 
+ []
+
+<images/script_prueba_4.png, id=36, 610.28pt x 88.33pt>
+File: images/script_prueba_4.png Graphic file (type png)
+<use images/script_prueba_4.png>
+Package pdftex.def Info: images/script_prueba_4.png  used on input line 177.
+(pdftex.def)             Requested size: 256.31584pt x 37.09834pt.
+
+Overfull \hbox (4.31584pt too wide) in paragraph at lines 177--178
+ [][] 
+ []
+
+<images/server_after_4.png, id=37, 530.98375pt x 122.4575pt>
+File: images/server_after_4.png Graphic file (type png)
+<use images/server_after_4.png>
+Package pdftex.def Info: images/server_after_4.png  used on input line 185.
+(pdftex.def)             Requested size: 238.94048pt x 55.10535pt.
+<images/client_after_4.png, id=38, 574.145pt x 120.45pt>
+File: images/client_after_4.png Graphic file (type png)
+<use images/client_after_4.png>
+Package pdftex.def Info: images/client_after_4.png  used on input line 191.
+(pdftex.def)             Requested size: 258.36285pt x 54.20198pt.
+
+Overfull \hbox (6.36285pt too wide) in paragraph at lines 191--192
+ [][] 
+ []
+
+<images/log_server_prueba_4.png, id=39, 485.56406pt x 117.43875pt>
+File: images/log_server_prueba_4.png Graphic file (type png)
+<use images/log_server_prueba_4.png>
+Package pdftex.def Info: images/log_server_prueba_4.png  used on input line 199
+.
+(pdftex.def)             Requested size: 267.06105pt x 64.59149pt.
+
+Overfull \hbox (15.06105pt too wide) in paragraph at lines 199--200
+ [][] 
+ []
+
+<images/log_cliente_prueba_4.png, id=40, 655.44875pt x 295.1025pt>
+File: images/log_cliente_prueba_4.png Graphic file (type png)
+<use images/log_cliente_prueba_4.png>
+Package pdftex.def Info: images/log_cliente_prueba_4.png  used on input line 20
+5.
+(pdftex.def)             Requested size: 262.17485pt x 118.0389pt.
+
+Overfull \hbox (10.17485pt too wide) in paragraph at lines 205--206
+ [][] 
+ []
+
+[3 <./images/client_after_3.png> <./images/im1.png> <./images/server_before_4.p
+ng> <./images/client_before_4.png> <./images/script_prueba_4.png> <./images/ser
+ver_after_4.png> <./images/client_after_4.png> <./images/log_server_prueba_4.pn
+g> <./images/log_cliente_prueba_4.png>] (memoria.aux) ) 
 Here is how much of TeX's memory you used:
- 4196 strings out of 492973
- 67343 string characters out of 3123151
+ 4231 strings out of 492973
+ 68372 string characters out of 3123151
  141042 words of memory out of 3000000
- 8005 multiletter control sequences out of 15000+200000
+ 8033 multiletter control sequences out of 15000+200000
  34510 words of font info for 65 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,6n,25p,534b,212s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Users/Alf
-onsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/enc/dvips/base/8r.enc}<C:/Us
-ers/AlfonsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/type1/public/amsfonts
-/cm/cmsy7.pfb><C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/t
-ype1/urw/times/utmb8a.pfb><C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKTeX
- 2.9/fonts/type1/urw/times/utmbi8a.pfb><C:/Users/AlfonsoJosé/AppData/Local/Pro
-grams/MíKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb>
-Output written on memoria.pdf (3 pages, 302074 bytes).
+{C:/Users/AlfonsoJosé/A
+ppData/Local/Programs/MíKTeX 2.9/fonts/enc/dvips/base/8r.enc}<C:/Users/Alfonso
+José/AppData/Local/Programs/MíKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.p
+fb><C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/type1/urw/ti
+mes/utmb8a.pfb><C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKTeX 2.9/fonts/
+type1/urw/times/utmbi8a.pfb><C:/Users/AlfonsoJosé/AppData/Local/Programs/MíKT
+eX 2.9/fonts/type1/urw/times/utmr8a.pfb>
+Output written on memoria.pdf (3 pages, 400281 bytes).
 PDF statistics:
- 53 PDF objects out of 1000 (max. 8388607)
+ 61 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 61 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 96 words of extra memory for PDF output out of 10000 (max. 10000000)
 

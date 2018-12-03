@@ -106,11 +106,11 @@ Mirando los directorios, se comprueba como los archivos se han recibido de forma
 \caption{ficherosTFTPserver}
 \end{figure}
 
-La siguiente prueba, con el objetivo de forzar un error, se ha realizado inmediatamente después de la anterior. Como existen los mismos ficheros en ambos directorios, se deberá errores de existencia de archivos, tanto para los clientes como para el servidor.
+La siguiente prueba, con el objetivo de forzar un error, se ha realizado inmediatamente después de la anterior. Como existen los mismos ficheros en ambos directorios, se deberá producir errores de existencia de archivos, tanto para los clientes como para el servidor.
 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.4]{images/log_cliente_prueba_2}
+\includegraphics[scale=0.45]{images/log_cliente_prueba_2}
 \caption{Log cliente prueba 2}
 \end{figure}
 
@@ -142,13 +142,72 @@ Teniendo el servidor activo lanzamos un cliente desde una subred diferente, en m
 \caption{Cliente prueba 3}
 \end{figure}
 
-Comprobamos el directorio del servidor y comprobamos que el fichero ha llegado.
+Se observa el directorio del servidor y se comprueba que el fichero ha llegado correctamente.
 
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.55]{images/im1}
 \caption{Directorio servidor prueba 3}
 \end{figure}
+
+Por último, se realiza la cuarta y última prueba, la cual consistirá en lanzar el servidor en una máquina que está conectada a la red 'olivo.fis.usal.es'. Para ello, se ha utilizado una de las máquinas de nuestra facultad, en concreto del aula 'sun'.\\
+
+El estado inicial del directorio del servidor será el siguiente:
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{images/server_before_4}
+\caption{ficherosTFTPserver prueba 4 (antes) }
+\end{figure}
+
+Se lanza el servidor y salimos de olivo. Desde la misma máquina pero si estar logeados en olivo, se lanza el mismo script usado en la prueba 1 (Figura 3).\\
+
+El estado inicial del directorio del cliente será el siguiente:
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{images/client_before_4}
+\caption{ficherosTFTPclient prueba 4 (antes)}
+\end{figure}
+
+Ejecutamos el script usado en la Figura 3, cambiando la IP, en este caso se usa un nombre:
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.42]{images/script_prueba_4}
+\caption{Script prueba 4}
+\end{figure}
+
+Tras ejecutar los ocho clientes, miramos de nuevo los directorios:
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{images/server_after_4}
+\caption{ficherosTFTPserver prueba 4 (después)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{images/client_after_4}
+\caption{ficherosTFTPclient prueba 4 (después)}
+\end{figure}
+
+Y se comprueba que la transmisión de los ocho ficheros se ha realizado con éxito. Para concluir con esta prueba, observamos el contenido de los logs que se han generado:
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.55]{images/log_server_prueba_4}
+\caption{Log cliente prueba 4}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.40]{images/log_cliente_prueba_4}
+\caption{Log server prueba 4}
+\end{figure}
+
+Vemos como todo ha ido bien y además el programa implementado es capaz de resolver nombres.
+
 
 % Your document ends here!
 \end{document}
