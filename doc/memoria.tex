@@ -150,7 +150,7 @@ Se observa el directorio del servidor y se comprueba que el fichero ha llegado c
 \caption{Directorio servidor prueba 3}
 \end{figure}
 
-Por último, se realiza la cuarta y última prueba, la cual consistirá en lanzar el servidor en una máquina que está conectada a la red 'olivo.fis.usal.es'. Para ello, se ha utilizado una de las máquinas de nuestra facultad, en concreto del aula 'sun'.\\
+Por último, se realiza la cuarta y última prueba, la cual consistirá en lanzar el servidor en olivo. Para ello, se ha utilizado una de las máquinas de nuestra facultad, en concreto del aula 'sun'.\\
 
 El estado inicial del directorio del servidor será el siguiente:
 
@@ -160,9 +160,9 @@ El estado inicial del directorio del servidor será el siguiente:
 \caption{ficherosTFTPserver prueba 4 (antes) }
 \end{figure}
 
-Se lanza el servidor y salimos de olivo. Desde la misma máquina pero si estar logeados en olivo, se lanza el mismo script usado en la prueba 1 (Figura 3).\\
+Desde otra máquina, lanzamos ocho clientes, de la misma forma que en la prueba 1 (Figura) pero sin lanzar el servidor, que en este caso ya está lanzado en olivo.\\
 
-El estado inicial del directorio del cliente será el siguiente:
+Se comprueba antes el estado del directorio de los clientes:
 
 \begin{figure}[H]
 \centering
@@ -170,15 +170,15 @@ El estado inicial del directorio del cliente será el siguiente:
 \caption{ficherosTFTPclient prueba 4 (antes)}
 \end{figure}
 
-Ejecutamos el script usado en la Figura 3, cambiando la IP, en este caso se usa un nombre:
-
+ El script usado es el siguiente:
+ 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.42]{images/script_prueba_4}
+\includegraphics[scale=0.6]{images/script_prueba_4}
 \caption{Script prueba 4}
 \end{figure}
 
-Tras ejecutar los ocho clientes, miramos de nuevo los directorios:
+Tras ejecutar el script, miramos de nuevo los directorios:
 
 \begin{figure}[H]
 \centering
