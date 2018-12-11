@@ -188,14 +188,10 @@ char *argv[];
 
 			while (!FIN) 
 			{
-		        /* Meter en el conjunto de sockets los sockets UDP y TCP */
 		        FD_ZERO(&readmask);
 		        FD_SET(ls_TCP, &readmask);
 		        FD_SET(s_UDP, &readmask);
-		        /* 
-		        Seleccionar el descriptor del socket que ha cambiado. Deja una marca en 
-		        el conjunto de sockets (readmask)
-		        */ 
+
 			    if (ls_TCP > s_UDP) s_mayor=ls_TCP;
 				else s_mayor=s_UDP;
 
@@ -208,7 +204,7 @@ char *argv[];
 		            }
 		        }
 		        else { 
-		            /* Comprobamos si el socket seleccionado es el socket TCP */
+		            /* Check if the selected socket is TCP */
 		            if (FD_ISSET(ls_TCP, &readmask)) {
                             /* Note that addrlen is passed as a pointer
                             * so that the accept call can return the
@@ -242,8 +238,8 @@ char *argv[];
                                     */
                                 close(s_TCP);
                         }
-                    } /* De TCP*/
-                    /* Comprobamos si el socket seleccionado es el socket UDP */
+                    }
+                    /* Check if the selected socket is UDP */
                     if (FD_ISSET(s_UDP, &readmask)) 
                     {
                             /* This call will block until a new
@@ -291,7 +287,7 @@ char *argv[];
 }
 
 /*
- *				S E R V E R T C P
+ *	serverTCP
  *
  *	This is the actual server routine that the daemon forks to
  *	handle each individual connection.  Its purpose is to receive
@@ -429,7 +425,7 @@ void serverUDP(int s, char * buffer, size_t buffer_size, struct sockaddr_in clie
 	/* Unserialize the first message received */
     packet package;
     unserialize((byte_t *)buffer, buffer_size, &package);
-    
+
     if(package.opcode == RRQ)
         get_server(udp_socket, &package, &clientaddr_in, addrlen, UDP);
     else if(package.opcode == WRQ)

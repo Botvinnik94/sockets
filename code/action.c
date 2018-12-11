@@ -34,21 +34,22 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 	if(!build_RQ_packet(WRQ, filename, &package))
 	{
 		fprintf(logFile, "%s: error building request packet at 'put client'\n", getTime());
-        fclose(file);
+        	fclose(file);
 		return;
 	}
 
 	/* Send write request to the server */
 	if(!socket_send(socket, &package, servaddr_in, addrlen, type)) 
 	{
-        fclose(file);
+		free_packet(&package);
+        	fclose(file);
 		return;
 	}
 
 	/* Wait for server ACK (protocol custom ACK)  */
     if( !socket_receive(socket, &package, servaddr_in, addrlen, type))
     {
-        fclose(file);
+        	fclose(file);
 		return;
     }
 
@@ -56,7 +57,7 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 	if( package.opcode == ACK )
 	{
 		/* First nBloq must be 0 */
-		if( package.ack_message.nBloq != 0 )
+	if( package.ack_message.nBloq != 0 )
         {
             free_packet(&package);
             fprintf(logFile, "%s: Wrong initial ACK number in 'put client'\n", getTime());
@@ -79,6 +80,7 @@ void put_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 
 			/* Send the data read from the file */
             if(!socket_send(socket, &package, servaddr_in, addrlen, type)) {
+		free_packet(&package);
                 fclose(file);
                 return;
             }
@@ -164,10 +166,12 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
         if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
         {
+            free_packet(package);
             fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
             return;
         }
 
+	free_packet(package);
         return;
     }
 	/* If file doesn't exist, it continues */
@@ -183,7 +187,10 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
         }
 
 		/* Send the first ACK */
-        if( !socket_send(socket, package, clientaddr_in, addrlen, type) ) return;
+        if( !socket_send(socket, package, clientaddr_in, addrlen, type) ){
+		free_packet(package);
+		return;
+	}
 
         /* Opens the file to proceed with the writing */
         file = fopen(path, "w");
@@ -228,10 +235,12 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
                     if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
                     {
+			free_packet(package);
                         fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
                         return;
                     }
 
+		    free_packet(package);
                     return;
                 }
 
@@ -246,6 +255,7 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
                 if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
                 {
+		    free_packet(package);
                     fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
                     return;
                 }
@@ -268,10 +278,12 @@ void put_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
                 if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
                 {
+		    free_packet(package);
                     fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
                     return;
                 }
 
+		free_packet(package);
                 return;
             }
         }
@@ -310,70 +322,62 @@ void get_client(int socket, char *filename, struct sockaddr_in *servaddr_in, int
 	}
 
     /* Send write request to the server */
-	if(!socket_send(socket, &package, servaddr_in, addrlen, type)) return;
+	if(!socket_send(socket, &package, servaddr_in, addrlen, type)) {
+		free_packet(&package);
+		return;
+	}
 
-    /* Wait for server ACK (our custom ACK)  */
-    if( !socket_receive(socket, &package, servaddr_in, addrlen, type)) return;
+	/* Open the file */
+    FILE *file = fopen(path, "w");
+    if(file == NULL)
+	{
+		free_packet(&package);
+		fprintf(logFile, "%s: error opening file (filename=%s) at 'get client'\n", getTime(),path);
+		return;
+    }
 
-    if( package.opcode == ACK )
+    while( socket_receive(socket, &package, servaddr_in, addrlen, type) )
     {
-        /* Open the file */
-        FILE *file = fopen(path, "w");
-        if(file == NULL)
-		{
-            free_packet(&package);
-            fprintf(logFile, "%s: error opening file (filename=%s) at 'get client'\n", getTime(),path);
-            return;
-        }
-        free_packet(&package);
-
-        while( socket_receive(socket, &package, servaddr_in, addrlen, type) )
+	    if(package.opcode == DATA)
         {
-            if(package.opcode == DATA)
+	        data_size = package.data_message.data_size;
+
+	        if( fwrite(package.data_message.data, sizeof(byte_t), data_size, file) < data_size )
             {
-                data_size = package.data_message.data_size;
-
-                if( fwrite(package.data_message.data, sizeof(byte_t), data_size, file) < data_size )
-                {
-                    fprintf(logFile, "%s: Error writing file at 'get client'\n", getTime());
-                    break;
-                }
-
-                nBloq = package.data_message.nBloq;
-                free_packet(&package);
-
-                if( !build_ACK_packet(nBloq, &package) )
-                {           
-                    fprintf(logFile, "%s: Error building ACK packet\n", getTime());
-                    return;
-                }
-
-                if( !socket_send(socket, &package, servaddr_in, addrlen, type) )
-                {
-                    fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
-                    return;
-                }
-
-                if(data_size < MAX_DATA_SIZE) break;
-                free_packet(&package);
-            }
-            else
-            {
-                fprintf(logFile, "%s: Unexpected opcode while writing data on 'put server'\n", getTime());
+	            fprintf(logFile, "%s: Error writing file at 'get client'\n", getTime());
                 break;
             }
-        }
 
-        fclose(file);
-    }
-    else if( package.opcode == ERR )
-    {
-        fprintf(logFile, "%s: %s\n", getTime(), package.err_message.msg );
-    }
-    else
-    {
-        fprintf(logFile, "%s: Unexpected opcode at 'get client tcp'\n",getTime());
-    }
+            nBloq = package.data_message.nBloq;
+            free_packet(&package);
+
+            if( !build_ACK_packet(nBloq, &package) )
+            {           
+               fprintf(logFile, "%s: Error building ACK packet\n", getTime());
+ 	           return;
+            }
+
+            if( !socket_send(socket, &package, servaddr_in, addrlen, type) )
+            {
+			    free_packet(&package);
+                fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
+                return;
+            }
+
+            if(data_size < MAX_DATA_SIZE) 
+			{
+				free_packet(&package);
+				break;
+			}
+		}
+        else
+        {
+	        fprintf(logFile, "%s: Unexpected opcode while writing data on 'put server'\n", getTime());
+            break;
+        }
+	}           
+
+	fclose(file);
 
     free_packet(&package);
 }
@@ -402,6 +406,7 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
         if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
         {
+            free_packet(package);
             fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
             return;
         }
@@ -411,19 +416,6 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
     else
     {	
         free_packet(package);
-
-        /* The first ACK must be nBloq=0 */
-        if( !build_ACK_packet(0, package) )
-        {           
-            fprintf(logFile, "%s: Error building ACK packet\n", getTime());
-            return;
-        }
-
-        if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
-        {
-            fprintf(logFile, "%s: Error sending ACK packet\n", getTime());
-            return;
-        }
 
         /* Opens the file to proceed with the reading */
         file = fopen(path, "r");
@@ -446,6 +438,7 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 			/* Send the data read from the file */
             if(!socket_send(socket, package, clientaddr_in, addrlen, type))
             {
+		free_packet(package);
                 fclose(file);
                 return;
             }
@@ -474,10 +467,12 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
                     if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
                     {
+			free_packet(package);
                         fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
                         return;
                     }
 
+		    free_packet(package);
                     return;
                 }
             }
@@ -504,10 +499,12 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 
                 if( !socket_send(socket, package, clientaddr_in, addrlen, type) )
                 {
+		    free_packet(package);
                     fprintf(logFile, "%s: Error sending ERR packet\n", getTime());
                     return;
                 }
 
+		free_packet(package);
                 return;
             }
 
@@ -528,7 +525,7 @@ void get_server(int socket, packet *package, struct sockaddr_in *clientaddr_in, 
 void shutdown_connection(int socket)
 {
 	if (shutdown(socket, SHUT_WR) == -1) 
-    {
+        {
 		fprintf(logFile, "%s: unable to shutdown socket\n", getTime());
 		exit(1);
 	}
@@ -556,7 +553,6 @@ void timeout_handler()
     if( --retries_left )
     {
         fprintf(logFile, "%s: Retries left = %d\n", getTime(), retries_left);
-        alarm(TIMEOUT);
     }
     else
     {

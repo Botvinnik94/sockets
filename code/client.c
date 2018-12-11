@@ -198,7 +198,6 @@ void clientudp( char *argv[] )
 		servaddr_in.sin_addr = ((struct sockaddr_in *) res->ai_addr)->sin_addr;
 	 }
      freeaddrinfo(res);
-     /* puerto del servidor en orden de red*/
 	 servaddr_in.sin_port = htons(PORT);
 	
 	if(!strcmp(argv[3], "e")){

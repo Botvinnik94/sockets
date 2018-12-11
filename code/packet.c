@@ -114,15 +114,27 @@ void free_packet(packet * package){
 		switch(package->opcode){
 			case RRQ:
 		    case WRQ:
+			if(package->request_message.filename != NULL){
 				free(package->request_message.filename);
-		        free(package->request_message.mode);
+				package->request_message.filename = NULL;
+			}
+			if(package->request_message.mode != NULL){
+				free(package->request_message.mode);
+				package->request_message.mode = NULL;
+			}
 		        break;
 		    case DATA:
-		        free(package->data_message.data);
+			if(package->data_message.data != NULL){
+				free(package->data_message.data);
+				package->data_message.data = NULL;
+			}
 		        break;
-			case ERR:
+		    case ERR:
+			if(package->err_message.msg != NULL){
 				free(package->err_message.msg);
-				break;
+				package->err_message.msg = NULL;
+			}
+			break;
 		}
 	}
 }

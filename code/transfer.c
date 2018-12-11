@@ -12,46 +12,54 @@ extern FILE* logFile;
 
 bool socket_receive(int socket, packet *package, struct sockaddr_in *clientaddr_in, int addrlen, int type)
 {
-	byte_t buffer[MAX_BUFFER_SIZE];
+	byte_t buffer[MAX_BUFFER_SIZE] = {0};
 	size_t bytes_received = 0;
 
 	if(package == NULL){
 		fprintf(logFile, "%s: package null at receive function\n", getTime());	
-
 		return FALSE;
 	}
 
 	if( type == TCP )
 	{
 		bytes_received = recv(socket, buffer, MAX_BUFFER_SIZE, 0);
+		free_packet(package);
 		if(bytes_received == -1 || bytes_received == 0){
             if( bytes_received == -1 )
                 fprintf(logFile,"%s: recv error received\n", getTime());	
             else
                 fprintf(logFile,"%s: recv shutdown received\n", getTime());	
             return FALSE;
-	    }
+	    }		
 	}
 	else if( type == UDP)
 	{
 		alarm(TIMEOUT);
 		/* When the alarm pops it will go back to the loop until max retries or unexpected error occurs */
-		while ((bytes_received = recvfrom(socket, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)clientaddr_in, &addrlen)) == -1 && errno == EINTR){}
+		while ((bytes_received = recvfrom(socket, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr*)clientaddr_in, &addrlen)) == -1 && errno == EINTR){
+			if(!socket_send(socket, package, clientaddr_in, addrlen, UDP)){
+				return FALSE;
+			}
+			alarm(TIMEOUT);
+		}
 		alarm(0);
+		free_packet(package);
 		if(bytes_received == -1 || bytes_received == 0){
 		    if( bytes_received == -1 )
 		        fprintf(logFile,"%s: recv error received\n", getTime());
 		    else
 		        fprintf(logFile,"%s: recv shutdown received\n", getTime());	
 			return FALSE;
-		}
+		}	
 	}
 	else
 	{
+		free_packet(package);
 		fprintf(logFile, "%s: unexpected type(TCP(1)/UDP(2), got:%d)\n", getTime(), type);	
 		return FALSE;
 	}
 
+	
 	if(!unserialize(buffer, bytes_received, package)){
 		return FALSE;	
 	}
@@ -90,7 +98,6 @@ bool socket_send(int socket, packet *package, struct sockaddr_in *clientaddr_in,
 	}
 
 	/* Free the memory reserved in the serialize process */
-	free_packet(package);
 	free(buffer);
 
 	return TRUE;
