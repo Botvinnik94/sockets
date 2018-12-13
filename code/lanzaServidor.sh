@@ -1,6 +1,8 @@
 #!/bin/bash
 
-./server &
+./server
+
+sleep 1
 
 ./client localhost TCP l testFile5.txt &
 ./client localhost UDP l testFile6.txt &
